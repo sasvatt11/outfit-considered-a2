@@ -45,6 +45,12 @@ function setPhoto(src, source, alt) {
   elements.photoInput.value = '';
 }
 
+function photoFeedback(message, isError = false) {
+  elements.photoMessage.textContent = message;
+  elements.photoMessage.classList.toggle('photo-error', isError);
+  elements.photoMessage.setAttribute('role', isError ? 'alert' : 'status');
+}
+
 function loadSample() {
   setPhoto('/assets/sample-casual.webp', 'sample', 'AI-generated sample outfit: blue T-shirt, dark jeans and white trainers.');
   state.items = [item('tshirt', 'blue'), item('jeans', 'navy'), item('sneakers', 'white')];
@@ -54,25 +60,28 @@ function loadSample() {
   document.querySelector('[name="occasion"][value="casual"]').checked = true;
   document.querySelector('[name="self-view"][value="uncertain"]').checked = true;
   elements.preference.value = 'none';
-  elements.photoMessage.textContent = 'Sample image and its three garment labels are provided for demonstration. You can edit every label.';
+  photoFeedback('Sample image and its three garment labels are provided for demonstration. You can edit every label.');
   renderItems();
 }
 
 function loadUpload(file) {
   if (!file) return;
-  if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-    elements.photoMessage.textContent = 'Please choose a JPEG, PNG or WebP image.';
+  elements.photoInput.value = '';
+  const validType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type);
+  const validExtension = /\.(jpe?g|png|webp)$/i.test(file.name);
+  if (!validType && !validExtension) {
+    photoFeedback('That file is not a JPEG, PNG or WebP image. Choose one of those formats and try again.', true);
     return;
   }
-  if (file.size > 8 * 1024 * 1024) {
-    elements.photoMessage.textContent = 'That image is over 8 MB. Choose a smaller photo and try again.';
+  if (file.size > 40 * 1024 * 1024) {
+    photoFeedback('That image is over 40 MB. Resize or export a smaller copy, then try again.', true);
     return;
   }
   setPhoto(URL.createObjectURL(file), 'upload', 'Your uploaded outfit photo.');
   state.items = [];
   state.selfView = 'uncertain';
   document.querySelector('[name="self-view"][value="uncertain"]').checked = true;
-  elements.photoMessage.textContent = 'Photo added locally. Add the visible garments below; the app does not identify them automatically.';
+  photoFeedback('Photo added locally. Add the visible garments below; the app does not identify them automatically.');
   renderItems();
 }
 
@@ -177,6 +186,23 @@ function renderResult() {
 elements.sampleButton.addEventListener('click', loadSample);
 document.getElementById('upload-button').addEventListener('click', () => elements.photoInput.click());
 elements.photoInput.addEventListener('change', event => loadUpload(event.target.files?.[0]));
+elements.photo.addEventListener('error', () => photoFeedback('The selected image could not be displayed. Try exporting it again as PNG or JPEG.', true));
+elements.photoArea.addEventListener('dragover', event => {
+  event.preventDefault();
+  elements.photoArea.classList.add('drop-ready');
+});
+elements.photoArea.addEventListener('dragleave', event => {
+  if (!elements.photoArea.contains(event.relatedTarget)) elements.photoArea.classList.remove('drop-ready');
+});
+elements.photoArea.addEventListener('drop', event => {
+  event.preventDefault();
+  elements.photoArea.classList.remove('drop-ready');
+  loadUpload(event.dataTransfer?.files?.[0]);
+});
+window.addEventListener('paste', event => {
+  const file = [...(event.clipboardData?.files || [])].find(entry => entry.type.startsWith('image/'));
+  if (file) loadUpload(file);
+});
 elements.addItem.addEventListener('click', () => {
   if (state.items.length >= 8) {
     elements.inputError.textContent = 'This prototype supports up to eight visible pieces.';
