@@ -1,0 +1,47 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import { evaluateOutfit, suggestChange, applyChange } from '../src/engine.js';
+import { nearestColour } from '../src/colour.js';
+
+const casual = [
+  { id: '1', kind: 'tshirt', color: 'blue', pattern: 'solid' },
+  { id: '2', kind: 'jeans', color: 'navy', pattern: 'solid' },
+  { id: '3', kind: 'sneakers', color: 'white', pattern: 'solid' }
+];
+
+test('the same outfit is interpreted differently when the user changes occasion', () => {
+  const day = evaluateOutfit({ occasion: 'casual', items: casual });
+  const interview = evaluateOutfit({ occasion: 'interview', items: casual });
+  assert.ok(day.total > interview.total);
+  assert.ok(day.dimensions.find(d => d.key === 'occasion').score > interview.dimensions.find(d => d.key === 'occasion').score);
+});
+
+test('a suggested swap is reversible and its displayed estimate matches the engine', () => {
+  const context = { occasion: 'interview', items: casual };
+  const suggestion = suggestChange(context);
+  assert.ok(suggestion && suggestion.gain >= 4);
+  const changed = applyChange(casual, suggestion);
+  assert.equal(evaluateOutfit({ ...context, items: changed }).total, suggestion.after);
+  assert.deepEqual(casual, context.items);
+});
+
+test('a strong outfit does not receive an unnecessary suggestion', () => {
+  const items = [
+    { id: '1', kind: 'shirt', color: 'white', pattern: 'solid' },
+    { id: '2', kind: 'trousers', color: 'navy', pattern: 'solid' },
+    { id: '3', kind: 'loafers', color: 'black', pattern: 'solid' },
+    { id: '4', kind: 'blazer', color: 'navy', pattern: 'solid' }
+  ];
+  assert.equal(suggestChange({ occasion: 'interview', items }), null);
+});
+
+test('incomplete input does not receive a misleading numeric score', () => {
+  const result = evaluateOutfit({ occasion: 'casual', items: [casual[0]] });
+  assert.equal(result.total, null);
+  assert.match(result.notes[0], /at least two/);
+});
+
+test('photo colour classification identifies common sample colours', () => {
+  assert.equal(nearestColour([245, 245, 240]), 'white');
+  assert.equal(nearestColour([38, 61, 89]), 'navy');
+});
