@@ -41,7 +41,7 @@ See the [architecture diagram](docs/architecture.svg), [interaction storyboards]
 
 ## AI assistance and authorship
 
-The user chose the outfit-checking concept and the no-paid-service constraint. Codex helped draft the prototype code, interface, tests, README and diagrams; its built-in image generator created the sample photo. I checked the logic with automated scenario tests and the visible browser flow, then corrected a display bug that left the empty result panel visible after scoring. Before submitting this as assessed work, the student should review the rules, run the examples, and record any further decisions or changes they make. No external code or photographs were copied into the project.
+The user chose the outfit-checking concept and the no-paid-service constraint. Codex helped draft the prototype code, interface, tests, README and diagrams; its built-in image generator created the sample photo. Automated scenario tests and a visible browser walkthrough checked the logic; a display bug that left the empty result panel visible after scoring was corrected. Before submitting this as assessed work, the student should review the rules, run the examples, and record any further decisions or changes they make. No external code or photographs were copied into the project.
 
 ## Scope of the evidence
 

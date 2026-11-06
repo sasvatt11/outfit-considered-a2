@@ -1,5 +1,6 @@
 flowchart LR
     U[Person] -->|occasion + preference| C[Context input<br/>implemented]
+    U -->|optional own view, display only| O
     U -->|photo| P[Photo preview<br/>implemented]
     U -->|garment labels + corrections| E[Editable outfit facts<br/>implemented]
     P -->|clicked pixels| S[Colour sampler<br/>implemented]

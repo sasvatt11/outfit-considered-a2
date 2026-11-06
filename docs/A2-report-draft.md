@@ -2,7 +2,7 @@
 
 **Assignment:** Assignment 2 — Project Report  
 **Module:** Intelligent Interactive Systems  
-**Total report word count:** 1,156 (abstract 153 + main report 1,003)  
+**Total report word count:** 1,180 (abstract 153 + main report 1,027)  
 **Abstract word count:** 153  
 **Repository:** [add public GitHub URL before submission]  
 **README:** [add public README URL before submission]  
@@ -20,11 +20,11 @@ Someone deciding what to wear may want specific advice, yet a bare score can obs
 
 ### Why the interaction starts with the person
 
-The user sets the occasion and style preference before seeing advice, because those are personal context rather than facts the system can infer reliably from pixels. An optional “own view” asks whether the outfit needs work or works well. This choice develops my Assignment 1 question about judgement before AI advice. Buçinca, Malaya and Gajos (2021) found that three cognitive-forcing designs together reduced overreliance on wrong AI advice in an ingredient-choice task, but the designs added effort and did not establish a general improvement in overall performance. I therefore made the self-assessment optional and do not claim it improves outfit choices.
+The user sets the occasion and style preference before seeing advice, because those are personal context rather than facts the system can infer reliably from pixels. An optional “own view” asks whether the outfit needs work or works well; it is displayed, not scored. This choice develops my Assignment 1 question about judgement before AI advice. Buçinca, Malaya and Gajos (2021) found that three cognitive-forcing designs together reduced overreliance on wrong AI advice in an ingredient-choice task, but the designs added effort and did not establish a general improvement in overall performance. I therefore made the self-assessment optional and do not claim it improves outfit choices.
 
 Week 1’s “sensing–interpretation–action–feedback” spine informed the upload, colour sample, rule engine and correction loop. The image supplies pixel evidence, but the browser cannot reliably identify garment types in this version. A user enters those labels, and each sampled colour is presented as a suggestion that can be changed. This follows Week 3’s warning that even a vision-language model may add plausible but absent objects: a confident-looking garment label should not be silently treated as verified. The explicit boundary also prevents the sample’s prefilled labels being mistaken for live recognition.
 
-The score appears with a breakdown and a reason for each part. Week 2’s mental-model and cognitive-load lectures suggest making the system’s assumptions visible without making the user inspect a long explanation. The interface therefore shows four short reasons, not a paragraph of generated prose. It also acknowledges actions immediately and updates the score after edits, applying the feedback-timing and gulf-of-evaluation concepts from Weeks 2–3. Undo keeps a suggested swap exploratory rather than committing the user to it. Amershi et al. (2019) similarly recommend supporting correction in human–AI interfaces.
+The score appears with a breakdown and a reason for each part. Week 2’s mental-model and cognitive-load lectures suggest making the system’s assumptions visible without making the user inspect a long explanation. The interface therefore shows four short reasons, not a paragraph of generated prose. It also acknowledges actions immediately and updates the score after edits, applying Week 2’s feedback-timing and gulf-of-evaluation concepts. Undo keeps a suggested swap exploratory rather than committing the user to it. Amershi et al. (2019) similarly recommend supporting correction in human–AI interfaces.
 
 The score is revealed only after the user has provided enough information: a photo and at least two garments. With fewer pieces, a number would imply knowledge of an outfit the system has not seen. Missing footwear or an incomplete main outfit produces a visible qualification alongside any estimate. A suggested change is limited to one garment so the user can compare a specific counterfactual with the original; offering many simultaneous substitutions would make the cause of a changed score difficult to trace.
 
@@ -34,7 +34,7 @@ The implemented engine combines fixed weights—occasion fit 40%, garment pairin
 
 The colour sampler averages pixels around a user-selected point and maps them to a named colour. Clicking skin or background can produce the wrong suggestion; the editable colour field is the recovery path. The current server only serves static files. The photo is held in browser memory and is not transmitted to a model or server. The planned vision component is shown with a dashed connection in Figure 1, separate from the implemented path.
 
-Figure 1 also separates the source of each claim: photo pixels supply only a colour suggestion, while garment categories come from the user. Both enter an editable outfit-facts state alongside occasion and preference. The rule engine uses that state to calculate reasons, a score and candidate swaps; preview modifies the facts temporarily, and Undo restores them. This separation matters technically because a correction can be re-scored without reprocessing the photo. No account, persistent profile or remote inference is required. Automatic recognition would need its own uncertainty handling before its labels could enter the same editable state.
+Figure 1 also separates the source of each claim: photo pixels supply only a colour suggestion, while garment categories come from the user. Both enter an editable outfit-facts state alongside occasion and preference. The rule engine uses that state to calculate reasons, a score and candidate swaps; preview modifies the facts temporarily, and Undo restores them. This separation matters technically because a correction can be re-scored without reprocessing the photo. Following Week 4’s context-engineering discussion, this version keeps only the current task state, not a persistent style profile that could silently shape later scores. No account or remote inference is required. Automatic recognition would need its own uncertainty handling before its labels could enter the same editable state.
 
 ![System diagram](architecture.svg)
 

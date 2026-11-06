@@ -8,18 +8,19 @@
 
 <rect class="box" x="292" y="111" width="210" height="97" rx="12"/><text class="node" x="312" y="147">Photo preview</text><text class="sub" x="312" y="174">browser only</text>
 <rect class="box" x="292" y="253" width="210" height="97" rx="12"/><text class="node" x="312" y="289">Garment editor</text><text class="sub" x="312" y="316">manual labels + correction</text>
-<rect class="box" x="292" y="395" width="210" height="97" rx="12"/><text class="node" x="312" y="431">Context input</text><text class="sub" x="312" y="458">occasion · own view · style</text>
+<rect class="box" x="292" y="395" width="210" height="97" rx="12"/><text class="node" x="312" y="431">Context input</text><text class="sub" x="312" y="458">occasion · style preference</text>
 
 <rect class="box" x="578" y="111" width="210" height="97" rx="12"/><text class="node" x="598" y="147">Colour sampler</text><text class="sub" x="598" y="174">clicked pixels → colour</text>
 <rect class="box" x="578" y="253" width="210" height="97" rx="12"/><text class="node" x="598" y="289">Outfit facts</text><text class="sub" x="598" y="316">editable item attributes</text>
 <rect class="plan" x="578" y="438" width="210" height="97" rx="12"/><text class="node" x="598" y="474">Garment vision</text><text class="sub" x="598" y="501">automatic recognition</text>
 
 <rect class="box" x="864" y="253" width="235" height="97" rx="12"/><text class="node" x="885" y="289">Knowledge engine</text><text class="sub" x="885" y="316">weighted + semantic rules</text>
-<rect class="box" x="864" y="395" width="235" height="97" rx="12"/><text class="node" x="885" y="431">Visible response</text><text class="sub" x="885" y="458">score · reasons · swap</text>
+<rect class="box" x="864" y="395" width="235" height="97" rx="12"/><text class="node" x="885" y="431">Visible response</text><text class="sub" x="885" y="455">score · reasons · swap</text><text class="sub" x="885" y="476">own view (not scored)</text>
 
 <path class="arrow" d="M215 270 292 171"/><path class="arrow" d="M215 300h77"/><path class="arrow" d="M215 333 292 439"/>
 <path class="arrow" d="M502 160h76"/><path class="arrow" d="M683 208v45"/><path class="arrow" d="M502 302h76"/><path class="arrow" d="M788 302h76"/><path class="arrow" d="M502 444h332v-99h30"/><path class="arrow" d="M981 350v45"/>
 <path class="arrow" d="M864 448H246v-102h-31"/>
 <path class="arrow dashed" d="M397 208v327h181"/><path class="arrow dashed" d="M683 438v-88"/>
+<text class="small" x="518" y="148">pixels</text><text class="small" x="518" y="288">labels</text><text class="small" x="804" y="291">facts</text><text class="small" x="980" y="379">score</text><text class="small" x="704" y="428">context</text>
 <text class="small" x="29" y="567">User photo is never uploaded by this version. Garment labels are entered by the person; the vision box is only a proposed extension.</text>
 </svg>
