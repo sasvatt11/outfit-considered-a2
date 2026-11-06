@@ -1,6 +1,6 @@
 # Outfit, considered.
 
-**README prose word count:** approximately 584. Commands and headings are excluded.
+**README prose word count:** approximately 588. Commands and headings are excluded.
 
 A no-cost, local prototype for exploring how an outfit fits a chosen occasion and personal style preference. It scores the *selected clothing details*, never the person.
 
@@ -38,7 +38,7 @@ See the [architecture diagram](docs/architecture.svg), [interaction storyboards]
 | --- | --- | --- |
 | Initial prototype (`398231d`) | User proposed image-based outfit scoring and alternatives. We narrowed the score to a chosen occasion and used transparent local rules so the system works without a paid service. | Five engine tests passed; manual sample walkthrough produced 93 for casual and 67 for interview. |
 | Current revision | Added an optional independent view before the score, explicit boundaries for missing garment recognition, and diagrams showing the implemented loop. | Browser walkthrough checked the interview swap (67 → 74), undo (back to 67), and photo colour correction. |
-| Upload validation repair | Set the requested 5 MB limit and inspect image contents before showing a preview. A file named `.png` containing HEIC data now gets a clear export instruction. Added shorts and sandals so the reported outfit can be entered accurately. | Checked the reported file's format, then verified a genuine PNG preview and six rule-engine checks. |
+| Upload validation repair (`f328c3a`) | Set the requested 5 MB limit and inspect image contents before showing a preview. A file named `.png` containing HEIC data now gets a clear export instruction. Added shorts and sandals so the reported outfit can be entered accurately. | Checked the reported file's format, then verified a genuine PNG preview, a scored outfit and six rule-engine checks. |
 
 ## AI assistance and authorship
 

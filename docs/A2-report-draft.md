@@ -2,7 +2,7 @@
 
 **Assignment:** Assignment 2 — Project Report  
 **Module:** Intelligent Interactive Systems  
-**Total report word count:** 1,180 (abstract 153 + main report 1,027)  
+**Total report word count:** 1,221 (abstract 153 + main report 1,068)
 **Abstract word count:** 153  
 **Repository:** [add public GitHub URL before submission]  
 **README:** [add public README URL before submission]  
@@ -48,7 +48,7 @@ Figure 2 illustrates three developed paths. In the sample, a blue T-shirt, navy 
 
 *Figure 2. Three interactions showing no suggestion, a reversible swap and a correctable colour sample.*
 
-The project changed substantially from the initial idea of automatic photo-based scoring. A live vision service would have introduced cost or access dependencies, so I developed local pixel sensing and explicit garment entry while keeping automatic recognition visibly planned. I later added the optional pre-score view to connect the design to Assignment 1 without making a costly forcing step compulsory. Five automated scenarios check context changes, reversible suggestions, strong-outfit restraint, incomplete-input handling and common colour mapping. A browser walkthrough exposed an empty panel still showing after scoring; I fixed the hidden-state styling and replayed the score, swap, undo and colour correction. These checks establish consistency with the implemented rules, not fashion validity or user benefit. The README records AI assistance and the development decisions; the repository commit identifies the submitted version.
+The project changed substantially from the initial idea of automatic photo-based scoring. A live vision service would have introduced cost or access dependencies, so I developed local pixel sensing and explicit garment entry while keeping automatic recognition visibly planned. I later added the optional pre-score view to connect the design to Assignment 1 without making a costly forcing step compulsory. Six automated scenarios check context changes, reversible suggestions, strong-outfit restraint, incomplete-input handling, colour mapping and a shorts-and-sandals outfit. A browser walkthrough exposed an empty panel still showing after scoring; I fixed the hidden-state styling and replayed the score, swap, undo and colour correction. A later upload test revealed that a file named `.png` actually contained HEIC data. The app now checks image contents before previewing and gives an export instruction; the converted PNG displayed and its manually entered outfit received a score. These checks establish consistency with the implemented rules, not fashion validity or user benefit. The README records AI assistance and the development decisions; the repository commit identifies the submitted version.
 
 ## References
 
