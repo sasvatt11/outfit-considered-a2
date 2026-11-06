@@ -1,6 +1,6 @@
 # Outfit, considered.
 
-**README prose word count:** approximately 569. Commands and headings are excluded.
+**README prose word count:** approximately 584. Commands and headings are excluded.
 
 A no-cost, local prototype for exploring how an outfit fits a chosen occasion and personal style preference. It scores the *selected clothing details*, never the person.
 
@@ -24,7 +24,7 @@ Requires Node.js 20 or newer. From this folder:
 npm start
 ```
 
-Open `http://127.0.0.1:4173`. Choose **Use sample photo** to replay the documented examples, or upload, drop or paste a JPEG, PNG or WebP up to 40 MB. After adding your own photo, enter at least two garment labels to enable scoring. Select a garment's **Pick colour from photo**, tap its area in the image, and review the suggested colour. Run the checks with:
+Open `http://127.0.0.1:4173`. Choose **Use sample photo** to replay the documented examples, or upload, drop or paste a JPEG, PNG or WebP up to 5 MB. After adding your own photo, enter at least two garment labels to enable scoring. Select a garment's **Pick colour from photo**, tap its area in the image, and review the suggested colour. Run the checks with:
 
 ```sh
 npm test
@@ -38,7 +38,7 @@ See the [architecture diagram](docs/architecture.svg), [interaction storyboards]
 | --- | --- | --- |
 | Initial prototype (`398231d`) | User proposed image-based outfit scoring and alternatives. We narrowed the score to a chosen occasion and used transparent local rules so the system works without a paid service. | Five engine tests passed; manual sample walkthrough produced 93 for casual and 67 for interview. |
 | Current revision | Added an optional independent view before the score, explicit boundaries for missing garment recognition, and diagrams showing the implemented loop. | Browser walkthrough checked the interview swap (67 → 74), undo (back to 67), and photo colour correction. |
-| PNG upload repair | Increased the local image limit from 8 to 40 MB, allowed filename fallback when MIME type is missing, and added visible errors plus drop/paste alternatives. | A PNG loaded successfully through the file picker after the change; five engine checks still pass. |
+| Upload validation repair | Set the requested 5 MB limit and inspect image contents before showing a preview. A file named `.png` containing HEIC data now gets a clear export instruction. Added shorts and sandals so the reported outfit can be entered accurately. | Checked the reported file's format, then verified a genuine PNG preview and six rule-engine checks. |
 
 ## AI assistance and authorship
 

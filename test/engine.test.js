@@ -45,3 +45,16 @@ test('photo colour classification identifies common sample colours', () => {
   assert.equal(nearestColour([245, 245, 240]), 'white');
   assert.equal(nearestColour([38, 61, 89]), 'navy');
 });
+
+test('shorts and sandals can be scored and revised for a different occasion', () => {
+  const items = [
+    { id: '1', kind: 'tshirt', color: 'brown', pattern: 'print' },
+    { id: '2', kind: 'shorts', color: 'cream', pattern: 'solid' },
+    { id: '3', kind: 'sandals', color: 'black', pattern: 'solid' }
+  ];
+  const casualResult = evaluateOutfit({ occasion: 'casual', items });
+  const interviewResult = evaluateOutfit({ occasion: 'interview', items });
+  assert.ok(casualResult.total > interviewResult.total);
+  const suggestion = suggestChange({ occasion: 'interview', items });
+  assert.ok(suggestion && suggestion.gain >= 4);
+});

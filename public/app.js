@@ -64,20 +64,49 @@ function loadSample() {
   renderItems();
 }
 
-function loadUpload(file) {
+async function imageFormat(file) {
+  const bytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+  if (bytes.length >= 8 && [137, 80, 78, 71, 13, 10, 26, 10].every((byte, index) => bytes[index] === byte)) return 'PNG';
+  if (bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255) return 'JPEG';
+  const header = String.fromCharCode(...bytes);
+  if (header.startsWith('RIFF') && header.slice(8, 12) === 'WEBP') return 'WebP';
+  if (header.slice(4, 8) === 'ftyp' && /^(heic|heix|hevc|hevx|heim|heis|mif1|msf1)$/.test(header.slice(8, 12))) return 'HEIC';
+  return 'unknown';
+}
+
+async function loadUpload(file) {
   if (!file) return;
   elements.photoInput.value = '';
-  const validType = ['image/jpeg', 'image/png', 'image/webp'].includes(file.type);
-  const validExtension = /\.(jpe?g|png|webp)$/i.test(file.name);
-  if (!validType && !validExtension) {
-    photoFeedback('That file is not a JPEG, PNG or WebP image. Choose one of those formats and try again.', true);
+  if (file.size > 5 * 1024 * 1024) {
+    photoFeedback('That image is over 5 MB. Resize or export a smaller copy, then try again.', true);
     return;
   }
-  if (file.size > 40 * 1024 * 1024) {
-    photoFeedback('That image is over 40 MB. Resize or export a smaller copy, then try again.', true);
+  let format;
+  try {
+    format = await imageFormat(file);
+  } catch {
+    photoFeedback('The image could not be read. Try exporting it again as PNG or JPEG.', true);
     return;
   }
-  setPhoto(URL.createObjectURL(file), 'upload', 'Your uploaded outfit photo.');
+  if (format === 'HEIC') {
+    photoFeedback('This file contains HEIC image data even if its name ends in .png. Export a real PNG or JPEG and try again.', true);
+    return;
+  }
+  if (format === 'unknown') {
+    photoFeedback('That file is not a readable JPEG, PNG or WebP image. Export it in one of those formats and try again.', true);
+    return;
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    const preview = new Image();
+    preview.src = url;
+    await preview.decode();
+  } catch {
+    URL.revokeObjectURL(url);
+    photoFeedback(`This ${format} image could not be displayed. Try exporting a new copy.`, true);
+    return;
+  }
+  setPhoto(url, 'upload', 'Your uploaded outfit photo.');
   state.items = [];
   state.selfView = 'uncertain';
   document.querySelector('[name="self-view"][value="uncertain"]').checked = true;

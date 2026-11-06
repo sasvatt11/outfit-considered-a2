@@ -14,12 +14,14 @@ export const GARMENTS = {
   shirt: { label: 'Shirt or blouse', slot: 'upper', formality: 3 },
   knit: { label: 'Knitwear', slot: 'upper', formality: 2 },
   jeans: { label: 'Jeans', slot: 'lower', formality: 1 },
+  shorts: { label: 'Shorts', slot: 'lower', formality: 1 },
   trousers: { label: 'Tailored trousers', slot: 'lower', formality: 3 },
   skirt: { label: 'Skirt', slot: 'lower', formality: 2 },
   dress: { label: 'Dress', slot: 'dress', formality: 2 },
   blazer: { label: 'Blazer', slot: 'outerwear', formality: 3 },
   jacket: { label: 'Casual jacket', slot: 'outerwear', formality: 1 },
   sneakers: { label: 'Trainers', slot: 'footwear', formality: 1 },
+  sandals: { label: 'Sandals', slot: 'footwear', formality: 1 },
   boots: { label: 'Boots', slot: 'footwear', formality: 2 },
   loafers: { label: 'Smart shoes', slot: 'footwear', formality: 3 }
 };
@@ -81,6 +83,10 @@ export function evaluateOutfit({ occasion, preference = 'none', items }) {
   if (kinds.includes('jeans') && kinds.includes('sneakers') && occasion === 'casual') {
     pairing += 14;
     pairingReasons.push('Jeans and trainers form a familiar casual pairing.');
+  }
+  if (kinds.includes('shorts') && kinds.includes('sandals') && occasion === 'casual') {
+    pairing += 14;
+    pairingReasons.push('Shorts and sandals form a familiar casual pairing.');
   }
   if (kinds.includes('trousers') && kinds.includes('loafers')) {
     pairing += 14;
@@ -156,12 +162,12 @@ export function suggestChange(context) {
 
   for (const item of context.items) {
     if (context.occasion === 'interview') {
-      if (item.kind === 'sneakers' || item.kind === 'boots') offer(item, { kind: 'loafers' }, 'Smart shoes may align more closely with the interview setting.');
+      if (item.kind === 'sneakers' || item.kind === 'boots' || item.kind === 'sandals') offer(item, { kind: 'loafers' }, 'Smart shoes may align more closely with the interview setting.');
       if (item.kind === 'tshirt') offer(item, { kind: 'shirt' }, 'A shirt or blouse may better match this setting.');
-      if (item.kind === 'jeans') offer(item, { kind: 'trousers' }, 'Tailored trousers may give the outfit a more consistent level of dress.');
+      if (item.kind === 'jeans' || item.kind === 'shorts') offer(item, { kind: 'trousers' }, 'Tailored trousers may give the outfit a more consistent level of dress.');
     }
     if (context.occasion === 'dinner') {
-      if (item.kind === 'sneakers') offer(item, { kind: 'boots' }, 'Boots may bring the footwear closer to the selected dinner setting.');
+      if (item.kind === 'sneakers' || item.kind === 'sandals') offer(item, { kind: 'boots' }, 'Boots may bring the footwear closer to the selected dinner setting.');
       if (item.kind === 'tshirt') offer(item, { kind: 'knit' }, 'Knitwear may shift the outfit toward the selected dinner setting.');
     }
     if (context.occasion === 'casual') {
