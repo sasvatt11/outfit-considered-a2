@@ -97,7 +97,7 @@ function makeDimension(dimension) {
   const safeScore = Math.max(0, Math.min(100, dimension.score));
   const wrapper = document.createElement('div');
   wrapper.className = 'dimension';
-  wrapper.innerHTML = `<div class="dimension-head"><span>${dimension.label}<span class="dimension-weight">${dimension.weight}% of score</span></span><strong>${safeScore}/100</strong></div><div class="dimension-bar" aria-hidden="true"><div class="dimension-fill" style="width:${safeScore}%"></div></div><p></p>`;
+  wrapper.innerHTML = `<div class="dimension-head"><span>${dimension.label}<span class="dimension-weight">${dimension.weight}% of score</span></span><strong>${safeScore}/100</strong></div><div class="dimension-bar" aria-hidden="true"><div class="dimension-fill" style="transform:scaleX(${safeScore / 100})"></div></div><p></p>`;
   wrapper.querySelector('p').textContent = dimension.reason;
   return wrapper;
 }
@@ -175,6 +175,7 @@ function renderResult() {
 }
 
 elements.sampleButton.addEventListener('click', loadSample);
+document.getElementById('upload-button').addEventListener('click', () => elements.photoInput.click());
 elements.photoInput.addEventListener('change', event => loadUpload(event.target.files?.[0]));
 elements.addItem.addEventListener('click', () => {
   if (state.items.length >= 8) {

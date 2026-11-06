@@ -1,0 +1,17 @@
+flowchart LR
+    U[Person] -->|occasion + preference| C[Context input<br/>implemented]
+    U -->|photo| P[Photo preview<br/>implemented]
+    U -->|garment labels + corrections| E[Editable outfit facts<br/>implemented]
+    P -->|clicked pixels| S[Colour sampler<br/>implemented]
+    S -->|suggested colour| E
+    C --> R[Contextual rule engine<br/>implemented]
+    E --> R
+    R -->|weighted reasons + swap| O[Score and suggestion<br/>implemented]
+    O -->|review / preview / undo| U
+    P -.-> V[Automatic garment recognition<br/>planned, not built]
+    V -.-> E
+
+    classDef built fill:#e8f0e5,stroke:#244e3f,color:#173a2d;
+    classDef planned fill:#faf8f2,stroke:#9aa69b,color:#5b665e,stroke-dasharray:6 4;
+    class C,P,E,S,R,O built;
+    class V planned;

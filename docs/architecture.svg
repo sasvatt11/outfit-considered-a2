@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1180 610" role="img" aria-labelledby="title desc">
+<title id="title">Outfit, considered. system architecture</title><desc id="desc">Solid arrows connect implemented browser components. Dashed arrows mark planned automatic garment recognition.</desc>
+<defs><style>.bg{fill:#f3efe7}.box{fill:#fffdf8;stroke:#38654a;stroke-width:2}.plan{fill:#faf8f2;stroke:#89998a;stroke-width:2;stroke-dasharray:7 5}.ink{fill:#25382b}.muted{fill:#627166}.heading{font:700 19px Arial,sans-serif;fill:#25382b}.label{font:14px Arial,sans-serif;fill:#3f5745}.small{font:12px Arial,sans-serif;fill:#5c6c60}.arrow{stroke:#597e5f;stroke-width:2.5;fill:none;marker-end:url(#tip)}.dashed{stroke:#93a596;stroke-dasharray:8 6}.node{font:700 17px Arial,sans-serif;fill:#25382b}.sub{font:13px Arial,sans-serif;fill:#5b6a5f}</style><marker id="tip" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0 0 9 4.5 0 9z" fill="#597e5f"/></marker></defs>
+<rect width="1180" height="610" class="bg"/>
+<text class="heading" x="40" y="46">System architecture</text><text class="small" x="40" y="70">Solid = implemented locally · Dashed = planned, not built</text>
+
+<rect class="box" x="40" y="242" width="175" height="120" rx="12"/><text class="node" x="66" y="287">Person</text><text class="sub" x="66" y="314">chooses · corrects</text><text class="sub" x="66" y="336">previews · undoes</text>
+
+<rect class="box" x="292" y="111" width="210" height="97" rx="12"/><text class="node" x="312" y="147">Photo preview</text><text class="sub" x="312" y="174">browser only</text>
+<rect class="box" x="292" y="253" width="210" height="97" rx="12"/><text class="node" x="312" y="289">Garment editor</text><text class="sub" x="312" y="316">manual labels + correction</text>
+<rect class="box" x="292" y="395" width="210" height="97" rx="12"/><text class="node" x="312" y="431">Context input</text><text class="sub" x="312" y="458">occasion · own view · style</text>
+
+<rect class="box" x="578" y="111" width="210" height="97" rx="12"/><text class="node" x="598" y="147">Colour sampler</text><text class="sub" x="598" y="174">clicked pixels → colour</text>
+<rect class="box" x="578" y="253" width="210" height="97" rx="12"/><text class="node" x="598" y="289">Outfit facts</text><text class="sub" x="598" y="316">editable item attributes</text>
+<rect class="plan" x="578" y="438" width="210" height="97" rx="12"/><text class="node" x="598" y="474">Garment vision</text><text class="sub" x="598" y="501">automatic recognition</text>
+
+<rect class="box" x="864" y="253" width="235" height="97" rx="12"/><text class="node" x="885" y="289">Knowledge engine</text><text class="sub" x="885" y="316">weighted + semantic rules</text>
+<rect class="box" x="864" y="395" width="235" height="97" rx="12"/><text class="node" x="885" y="431">Visible response</text><text class="sub" x="885" y="458">score · reasons · swap</text>
+
+<path class="arrow" d="M215 270 292 171"/><path class="arrow" d="M215 300h77"/><path class="arrow" d="M215 333 292 439"/>
+<path class="arrow" d="M502 160h76"/><path class="arrow" d="M683 208v45"/><path class="arrow" d="M502 302h76"/><path class="arrow" d="M788 302h76"/><path class="arrow" d="M502 444h332v-99h30"/><path class="arrow" d="M981 350v45"/>
+<path class="arrow" d="M864 448H246v-102h-31"/>
+<path class="arrow dashed" d="M397 208v327h181"/><path class="arrow dashed" d="M683 438v-88"/>
+<text class="small" x="29" y="567">User photo is never uploaded by this version. Garment labels are entered by the person; the vision box is only a proposed extension.</text>
+</svg>

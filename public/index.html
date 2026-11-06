@@ -41,11 +41,11 @@
           <div class="section-top"><span class="step-number">02</span><div><h3>Add your photo</h3><p>Your photo stays in this browser. Tap it to sample a garment colour.</p></div></div>
           <div id="photo-area" class="photo-area empty" aria-label="Outfit photo">
             <div id="empty-photo" class="empty-photo"><svg viewBox="0 0 60 60" aria-hidden="true"><rect x="6" y="10" width="48" height="40" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="20" cy="24" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="m10 44 14-13 9 8 7-7 10 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><strong>Start with a photo</strong><span>Upload yours or open the sample outfit</span></div>
-            <img id="outfit-image" alt="" hidden>
+            <img id="outfit-image" src="/assets/sample-casual.webp" alt="" hidden>
             <span id="photo-badge" class="photo-badge" hidden></span>
             <span id="sample-marker" class="sample-marker" hidden aria-hidden="true"></span>
           </div>
-          <div class="photo-actions"><label class="button button-dark file-button" for="photo-input">Upload photo<input id="photo-input" type="file" accept="image/png,image/jpeg,image/webp" hidden></label><button id="sample-button" class="button button-outline" type="button">Use sample photo</button></div>
+          <div class="photo-actions"><button id="upload-button" class="button button-dark" type="button">Upload photo</button><input id="photo-input" class="visually-hidden" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Choose an outfit photo"><button id="sample-button" class="button button-outline" type="button">Use sample photo</button></div>
           <p id="photo-message" class="helper-text" role="status">JPEG, PNG or WebP, up to 8 MB. No image is sent to a server.</p>
 
           <div class="section-divider"></div>
@@ -62,7 +62,7 @@
           <div class="result-top"><span class="result-label">YOUR ANALYSIS</span><span id="engine-label" class="engine-label">Local rule engine</span></div>
           <div id="result-empty" class="result-empty"><div class="orbit" aria-hidden="true"><span></span><span></span><span></span></div><h2 id="result-title">A little more context,<br>then a clearer answer.</h2><p>Add a photo and identify at least two pieces. We’ll show how occasion, garment pairing, colour and your preference each affect the estimate.</p><div class="result-footnote">Nothing here judges your body, appearance or identity.</div></div>
           <div id="result-content" class="result-content" hidden>
-            <div class="score-header"><div><p class="score-subtitle">Contextual fit estimate</p><div class="score-number"><strong id="score-value">—</strong><span>/ 100</span></div></div><span id="score-context" class="score-context"></span></div>
+            <div class="score-header"><div><p class="score-subtitle">Contextual fit estimate</p><div class="score-number"><strong id="score-value" aria-live="polite">—</strong><span>/ 100</span></div></div><span id="score-context" class="score-context"></span></div>
             <p id="self-view-result" class="self-view-result" hidden></p>
             <p class="score-disclaimer">A transparent prototype score, not an objective measure of style. The weights below are design choices.</p>
             <div id="dimensions" class="dimensions"></div>
