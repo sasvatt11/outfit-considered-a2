@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateOutfit, suggestChange, applyChange } from '../src/engine.js';
 import { nearestColour } from '../src/colour.js';
+import { comparePhotoSwatch } from '../src/palette.js';
 
 const casual = [
   { id: '1', kind: 'tshirt', color: 'blue', pattern: 'solid' },
@@ -57,4 +58,23 @@ test('shorts and sandals can be scored and revised for a different occasion', ()
   assert.ok(casualResult.total > interviewResult.total);
   const suggestion = suggestChange({ occasion: 'interview', items });
   assert.ok(suggestion && suggestion.gain >= 4);
+});
+
+test('chosen earth-tone direction affects only the preference component', () => {
+  const items = [
+    { id: '1', kind: 'knit', color: 'orange', pattern: 'solid' },
+    { id: '2', kind: 'trousers', color: 'beige', pattern: 'solid' },
+    { id: '3', kind: 'boots', color: 'brown', pattern: 'solid' }
+  ];
+  const neutral = evaluateOutfit({ occasion: 'dinner', preference: 'none', items });
+  const earth = evaluateOutfit({ occasion: 'dinner', preference: 'earth', items });
+  assert.equal(neutral.dimensions.find(d => d.key === 'occasion').score, earth.dimensions.find(d => d.key === 'occasion').score);
+  assert.ok(earth.dimensions.find(d => d.key === 'preference').score > neutral.dimensions.find(d => d.key === 'preference').score);
+});
+
+test('photo swatch comparison is descriptive and keeps garment input intact', () => {
+  const compared = comparePhotoSwatch([180, 130, 105], casual);
+  assert.equal(compared.length, casual.length);
+  assert.ok(compared.every(entry => ['soft', 'moderate', 'strong'].includes(entry.contrast)));
+  assert.equal(casual[0].color, 'blue');
 });

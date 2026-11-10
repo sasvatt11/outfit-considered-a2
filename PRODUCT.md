@@ -12,7 +12,7 @@ Delegated by the user: plain HTML, CSS and JavaScript with a small Node.js serve
 
 ## Users
 
-An individual checking how their clothes work together for a chosen occasion. They upload a photo, identify the garments in it, inspect a contextual score, and can try a suggested change.
+An individual checking how their clothes work together for a chosen occasion. They upload a photo, review optional garment suggestions, inspect a contextual score, and can try a suggested change.
 
 ## Product Purpose
 
@@ -25,7 +25,10 @@ Assignment 2 for Intelligent Interactive Systems. The submitted project needs in
 ## Capabilities and Constraints
 
 - Upload a photo and sample colours directly from it.
-- The user supplies and corrects garment labels; automatic garment recognition is not implemented.
+- An optional browser-run vision-language model suggests garments in three fixed image areas. The user reviews, edits, or ignores its guesses and adds missed items manually.
+- The model downloads on first use and needs an internet connection then; it needs no paid service or API key.
+- An optional user-selected skin-area sample shows descriptive light/dark contrast with garment colours. Appearance, skin tone, and gender are not inferred or scored.
+- A recorded pre-score judgement is shown beside the result but does not alter it. The chosen style direction affects only the preference portion of the score.
 - A local knowledge-based engine applies explicit and contextual compatibility rules, explains its score, and compares a suggested swap.
 - No paid service, account or API key is needed.
 - The prototype must label sample data and unfinished capabilities accurately.

@@ -34,8 +34,9 @@
             <label class="choice"><input type="radio" name="occasion" value="dinner"><span>Dinner out</span></label>
             <label class="choice"><input type="radio" name="occasion" value="interview"><span>Interview</span></label>
           </div></fieldset>
-          <label class="field-label" for="preference">What feels like you?</label>
-          <select id="preference" class="wide-select"><option value="none">No preference selected</option><option value="minimal">Understated</option><option value="expressive">Expressive</option></select>
+          <label class="field-label" for="preference">Style direction <span class="optional-label">Optional</span></label>
+          <select id="preference" class="wide-select"><option value="none">No colour or style direction</option><option value="minimal">Understated</option><option value="expressive">Bright or expressive</option><option value="earth">Earth tones</option><option value="cool">Cool tones</option></select>
+          <p class="helper-text">Your choice affects only the 15% “Your preference” part of the score. It is never inferred from your appearance.</p>
 
           <div class="section-divider"></div>
           <div class="section-top"><span class="step-number">02</span><div><h3>Add your photo</h3><p>Your photo stays in this browser. Tap it to sample a garment colour.</p></div></div>
@@ -45,22 +46,27 @@
             <span id="photo-badge" class="photo-badge" hidden></span>
             <span id="sample-marker" class="sample-marker" hidden aria-hidden="true"></span>
           </div>
-          <div class="photo-actions"><button id="upload-button" class="button button-dark" type="button">Upload photo</button><input id="photo-input" class="visually-hidden" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" aria-label="Choose an outfit photo"><button id="sample-button" class="button button-outline" type="button">Use sample photo</button></div>
+          <div class="photo-actions"><button id="upload-button" class="button button-dark" type="button">Upload photo</button><input id="photo-input" class="visually-hidden" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" aria-label="Choose an outfit photo"></div>
+          <div class="sample-choices" aria-label="Sample outfits"><span>Or try a sample:</span><button type="button" data-sample="casual">Casual day</button><button type="button" data-sample="interview">Interview</button><button type="button" data-sample="earth">Earth tones</button></div>
           <p id="photo-message" class="helper-text" role="status">JPEG, PNG or WebP, up to 5 MB. You can also drop or paste an image. No image is sent to a server.</p>
 
           <div class="section-divider"></div>
-          <div class="section-top"><span class="step-number">03</span><div><h3>Identify the pieces</h3><p>Choose garment types yourself. The app never invents an item from your photo.</p></div></div>
-          <p class="inventory-hint">Need a colour? Select “Pick from photo” on a piece, then tap that garment in the image. Review the suggested colour before scoring.</p>
+          <div class="section-top"><span class="step-number">03</span><div><h3>Check the pieces</h3><p>Try local image suggestions, then correct them or add anything missed.</p></div></div>
+          <div class="vision-controls"><button id="suggest-button" class="button button-outline" type="button" disabled>Suggest garments from photo</button><p id="vision-status" class="helper-text" role="status">Optional. First use downloads about 160 MB of free model files; your photo stays in this browser. Results are guesses, not verified labels.</p></div>
+          <div id="vision-panel" class="vision-panel" hidden><strong>Review image suggestions</strong><p>The model checks three fixed areas of the photo. Change or untick any wrong guess before adding it.</p><div id="vision-list"></div><button id="apply-vision" class="button button-dark" type="button">Add selected pieces</button></div>
+          <p class="inventory-hint">Choose a colour for every piece before scoring. You can use “Pick from photo”, tap that garment in the image, and correct the result.</p>
           <div id="item-list" class="item-list" aria-live="polite"></div>
           <div class="inventory-actions"><button id="add-item" class="text-button" type="button"><span aria-hidden="true">＋</span> Add a piece</button><span id="item-count">0 pieces added</span></div>
+          <div class="skin-compare"><h4>Compare colours near your skin <span class="optional-label">Optional</span></h4><p>Tap a visible patch of skin yourself. We compare light and dark contrast with entered garment colours; this is not a skin-tone diagnosis or a “flattering” score. Lighting can change the sample.</p><button id="skin-button" class="button button-outline" type="button" disabled>Pick colour from photo</button><div id="skin-output" class="skin-output" hidden></div></div>
           <fieldset class="self-view"><legend>Before seeing the score, what’s your own view? <span>Optional</span></legend><div class="self-view-options"><label><input type="radio" name="self-view" value="uncertain" checked><span>Not sure yet</span></label><label><input type="radio" name="self-view" value="low"><span>Needs work</span></label><label><input type="radio" name="self-view" value="good"><span>Works well</span></label></div></fieldset>
+          <p class="own-view-hint">This records your judgement before advice. It appears beside the result but never changes the score. Your choice locks when you reveal the score.</p>
           <button id="score-button" class="button button-primary" type="button" disabled>See my outfit score <span aria-hidden="true">↗</span></button>
           <p id="input-error" class="input-error" role="alert" hidden></p>
         </section>
 
         <aside class="work-panel result-panel" aria-labelledby="result-title">
           <div class="result-top"><span class="result-label">YOUR ANALYSIS</span><span id="engine-label" class="engine-label">Local rule engine</span></div>
-          <div id="result-empty" class="result-empty"><div class="orbit" aria-hidden="true"><span></span><span></span><span></span></div><h2 id="result-title">A little more context,<br>then a clearer answer.</h2><p>Add a photo and identify at least two pieces. We’ll show how occasion, garment pairing, colour and your preference each affect the estimate.</p><div class="result-footnote">Nothing here judges your body, appearance or identity.</div></div>
+          <div id="result-empty" class="result-empty"><div class="orbit" aria-hidden="true"><span></span><span></span><span></span></div><h2 id="result-title">A little more context,<br>then a clearer answer.</h2><p>Add a photo and confirm at least two pieces and their colours. We’ll show how occasion, garment pairing, colour and your preference each affect the estimate.</p><div class="result-footnote">Nothing here judges your body, appearance or identity.</div></div>
           <div id="result-content" class="result-content" hidden>
             <div class="score-header"><div><p class="score-subtitle">Contextual fit estimate</p><div class="score-number"><strong id="score-value" aria-live="polite">—</strong><span>/ 100</span></div></div><span id="score-context" class="score-context"></span></div>
             <p id="self-view-result" class="self-view-result" hidden></p>
@@ -68,7 +74,7 @@
             <div id="dimensions" class="dimensions"></div>
             <div id="score-notes" class="score-notes" hidden></div>
             <div class="suggestion-block"><div class="suggestion-heading"><span class="suggestion-icon" aria-hidden="true">↗</span><h3>One change to explore</h3></div><div id="suggestion-content"></div></div>
-            <div class="method-note"><h3>How this works</h3><p>Photo: shown locally. Colours: sampled from pixels and confirmed by you. Garments: entered by you. Score and suggestion: calculated by editable, deterministic rules. Automatic garment recognition is not implemented.</p></div>
+            <div class="method-note"><h3>How this works</h3><p>Photo: kept in this browser. Garments: suggested by a free local vision model when requested, then reviewed by you. Colours: sampled from pixels and confirmed by you. Score and swap: calculated by editable rules. Your pre-score view and sampled skin colour do not affect the score. No gender is inferred.</p></div>
           </div>
         </aside>
       </div>

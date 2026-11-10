@@ -50,6 +50,14 @@ export const PATTERNS = {
   check: 'Checked'
 };
 
+export const PREFERENCES = {
+  none: 'No colour or style direction',
+  minimal: 'Understated',
+  expressive: 'Bright or expressive',
+  earth: 'Earth tones',
+  cool: 'Cool tones'
+};
+
 const clamp = value => Math.max(0, Math.min(100, Math.round(value)));
 
 function checkItems(items) {
@@ -60,7 +68,7 @@ function checkItems(items) {
 
 export function evaluateOutfit({ occasion, preference = 'none', items }) {
   if (!OCCASIONS[occasion]) throw new Error('Choose a supported occasion.');
-  if (!['none', 'minimal', 'expressive'].includes(preference)) throw new Error('Choose a supported preference.');
+  if (!PREFERENCES[preference]) throw new Error('Choose a supported preference.');
   if (!checkItems(items)) throw new Error('Review the garment details before scoring.');
   if (items.length < 2) {
     return { total: null, dimensions: [], notes: ['Add at least two visible garments to receive an estimate.'] };
@@ -129,6 +137,14 @@ export function evaluateOutfit({ occasion, preference = 'none', items }) {
   if (preference === 'expressive') {
     preferenceScore = clamp(55 + share * 45);
     preferenceReason = share >= 0.5 ? 'Colour or pattern supports your expressive preference.' : 'The outfit is quieter than your stated preference.';
+  }
+  if (preference === 'earth' || preference === 'cool') {
+    const earth = new Set(['cream', 'beige', 'brown', 'orange', 'green']);
+    const cool = new Set(['black', 'white', 'grey', 'navy', 'blue', 'purple', 'pink']);
+    const palette = preference === 'earth' ? earth : cool;
+    const matches = items.filter(item => palette.has(item.color)).length;
+    preferenceScore = clamp(60 + 40 * matches / items.length);
+    preferenceReason = `${matches} of ${items.length} selected colours follow your ${preference === 'earth' ? 'earth-tone' : 'cool-tone'} direction. This reflects your choice, not a rule about skin tone.`;
   }
 
   const dimensions = [

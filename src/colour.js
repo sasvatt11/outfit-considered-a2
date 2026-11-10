@@ -29,14 +29,21 @@ export function nearestColour(rgb) {
 export function sampleImageColour(image, clientX, clientY) {
   if (!image.complete || !image.naturalWidth) throw new Error('The image has not loaded yet.');
   const bounds = image.getBoundingClientRect();
+  const displayedWidth = Math.min(bounds.width, bounds.height * image.naturalWidth / image.naturalHeight);
+  const displayedHeight = Math.min(bounds.height, bounds.width * image.naturalHeight / image.naturalWidth);
+  const imageLeft = bounds.left + (bounds.width - displayedWidth) / 2;
+  const imageTop = bounds.top + (bounds.height - displayedHeight) / 2;
+  const relativeX = (clientX - imageLeft) / displayedWidth;
+  const relativeY = (clientY - imageTop) / displayedHeight;
+  if (relativeX < 0 || relativeX > 1 || relativeY < 0 || relativeY > 1) throw new Error('Tap inside the visible photo, away from the blank margins.');
   const scale = Math.min(1, 640 / image.naturalWidth);
   const canvas = document.createElement('canvas');
   canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
   canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
   const context = canvas.getContext('2d', { willReadFrequently: true });
   context.drawImage(image, 0, 0, canvas.width, canvas.height);
-  const x = Math.min(canvas.width - 1, Math.max(0, Math.round((clientX - bounds.left) / bounds.width * canvas.width)));
-  const y = Math.min(canvas.height - 1, Math.max(0, Math.round((clientY - bounds.top) / bounds.height * canvas.height)));
+  const x = Math.min(canvas.width - 1, Math.max(0, Math.round(relativeX * canvas.width)));
+  const y = Math.min(canvas.height - 1, Math.max(0, Math.round(relativeY * canvas.height)));
   const radius = 5;
   const startX = Math.max(0, x - radius);
   const startY = Math.max(0, y - radius);
@@ -50,5 +57,5 @@ export function sampleImageColour(image, clientX, clientY) {
   }
   if (!count) throw new Error('No visible colour was found at that point.');
   const rgb = channels.map(value => Math.round(value / count));
-  return { rgb, colour: nearestColour(rgb), x: (clientX - bounds.left) / bounds.width, y: (clientY - bounds.top) / bounds.height };
+  return { rgb, colour: nearestColour(rgb), x: relativeX, y: relativeY };
 }
