@@ -11,8 +11,10 @@ flowchart LR
     E --> R
     R -->|score, reasons, swap| O[Result + Undo<br/>implemented]
     O --> U
-    P -->|user-picked skin-area pixel| S[Contrast comparison<br/>implemented, optional]
-    S -->|description only| O
+    P -->|user-picked skin-area pixel| S[Patch description + contrast<br/>implemented, optional]
+    U -->|contrast goal| S
+    S -->|RGB + goal| X
+    S -->|photo description| O
     U -->|own view before score| O
 
     classDef built fill:#e8f0e5,stroke:#244e3f,color:#173a2d;

@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { evaluateOutfit, suggestChange, applyChange } from '../src/engine.js';
 import { nearestColour } from '../src/colour.js';
-import { comparePhotoSwatch } from '../src/palette.js';
+import { comparePhotoSwatch, describePhotoPatch } from '../src/palette.js';
 
 const casual = [
   { id: '1', kind: 'tshirt', color: 'blue', pattern: 'solid' },
@@ -97,6 +97,33 @@ test('chosen earth-tone direction affects only the preference component', () => 
 test('photo swatch comparison is descriptive and keeps garment input intact', () => {
   const compared = comparePhotoSwatch([180, 130, 105], casual);
   assert.equal(compared.length, casual.length);
-  assert.ok(compared.every(entry => ['soft', 'moderate', 'strong'].includes(entry.contrast)));
+  assert.ok(compared.every(entry => ['soft', 'balanced', 'bold'].includes(entry.contrast)));
   assert.equal(casual[0].color, 'blue');
+  assert.match(describePhotoPatch([180, 130, 105]), /photo.*lighting/i);
+});
+
+test('a selected skin-area colour and contrast goal affect a suitable outfit score', () => {
+  const items = [
+    { id: '1', kind: 'shirt', color: 'white', pattern: 'solid' },
+    { id: '2', kind: 'trousers', color: 'navy', pattern: 'solid' },
+    { id: '3', kind: 'loafers', color: 'black', pattern: 'solid' }
+  ];
+  const base = evaluateOutfit({ occasion: 'interview', items });
+  const balanced = evaluateOutfit({ occasion: 'interview', items, skinRgb: [180, 130, 105], contrastGoal: 'balanced' });
+  const soft = evaluateOutfit({ occasion: 'interview', items, skinRgb: [180, 130, 105], contrastGoal: 'soft' });
+  assert.equal(base.dimensions.length, 4);
+  assert.equal(balanced.dimensions.length, 5);
+  assert.equal(balanced.dimensions.find(entry => entry.key === 'skinContrast').weight, 8);
+  assert.notEqual(balanced.total, soft.total);
+});
+
+test('skin-colour preference cannot lift a conventional interview cap', () => {
+  const items = [
+    { id: '1', kind: 'tshirt', color: 'cream', pattern: 'print' },
+    { id: '2', kind: 'shorts', color: 'white', pattern: 'solid' },
+    { id: '3', kind: 'sandals', color: 'black', pattern: 'solid' }
+  ];
+  const result = evaluateOutfit({ occasion: 'interview', items, skinRgb: [180, 130, 105], contrastGoal: 'bold' });
+  assert.equal(result.total, 30);
+  assert.equal(result.dimensions.find(entry => entry.key === 'skinContrast').weight, 8);
 });

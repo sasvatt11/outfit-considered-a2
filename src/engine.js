@@ -2,6 +2,7 @@
  * Local, inspectable knowledge-based outfit engine.
  * These weights are design choices for this prototype, not validated fashion facts.
  */
+import { assessNearFaceContrast, CONTRAST_GOALS } from './appearance.js';
 
 export const OCCASIONS = {
   casual: { label: 'Casual day', target: 1 },
@@ -74,10 +75,11 @@ function checkItems(items) {
   );
 }
 
-export function evaluateOutfit({ occasion, preference = 'none', season = 'none', items }) {
+export function evaluateOutfit({ occasion, preference = 'none', season = 'none', skinRgb = null, contrastGoal = 'balanced', items }) {
   if (!OCCASIONS[occasion]) throw new Error('Choose a supported occasion.');
   if (!PREFERENCES[preference]) throw new Error('Choose a supported preference.');
   if (!SEASONS[season]) throw new Error('Choose a supported season.');
+  if (!CONTRAST_GOALS[contrastGoal]) throw new Error('Choose a supported contrast goal.');
   if (!checkItems(items)) throw new Error('Review the garment details before scoring.');
   if (items.length < 2) {
     return { total: null, dimensions: [], notes: ['Add at least two visible garments to receive an estimate.'] };
@@ -174,17 +176,29 @@ export function evaluateOutfit({ occasion, preference = 'none', season = 'none',
     preferenceReason = `${matches} of ${items.length} selected colours follow your ${preference === 'earth' ? 'earth-tone' : 'cool-tone'} direction. This reflects your choice, not a rule about skin tone.`;
   }
 
+  const skinRelation = skinRgb ? assessNearFaceContrast(skinRgb, items, COLORS, GARMENTS, contrastGoal) : null;
   const dimensions = [
     { key: 'occasion', label: 'Occasion fit', score: occasionScore, weight: 55, reason: occasionReason },
     { key: 'pairing', label: 'Garment pairing', score: pairingScore, weight: 20, reason: pairingReasons.join(' ') },
-    { key: 'colour', label: 'Colour balance', score: clamp(colourScore), weight: 15, reason: colourReason },
-    { key: 'preference', label: 'Your preference', score: preferenceScore, weight: 10, reason: preferenceReason }
+    { key: 'colour', label: 'Colour balance', score: clamp(colourScore), weight: skinRelation ? 7 : 15, reason: colourReason }
   ];
+  if (skinRelation) {
+    const pieces = skinRelation.comparisons.map(entry => {
+      const piece = items.find(item => item.id === entry.id);
+      return `${COLORS[piece.color].label.toLowerCase()} ${GARMENTS[piece.kind].label.toLowerCase()} (${entry.contrast})`;
+    });
+    dimensions.push({
+      key: 'skinContrast', label: 'Colour near your face', score: skinRelation.score, weight: 8,
+      reason: `${pieces.join(', ')} compared with the photo sample. Your chosen goal is ${CONTRAST_GOALS[contrastGoal].toLowerCase()}. This is an experimental preference rule, not a judgement of your skin.`
+    });
+  }
+  dimensions.push({ key: 'preference', label: 'Your preference', score: preferenceScore, weight: 10, reason: preferenceReason });
   const weightedTotal = clamp(dimensions.reduce((sum, d) => sum + d.score * d.weight / 100, 0));
   const interviewCap = interviewConflicts.length >= 3 ? 30 : interviewConflicts.length === 2 ? 45 : interviewConflicts.length === 1 ? 65 : null;
   const total = interviewCap === null ? weightedTotal : Math.min(weightedTotal, interviewCap);
   const notes = [];
   if (interviewCap !== null && weightedTotal > interviewCap) notes.push(`The weighted components total ${weightedTotal}/100, but interview suitability limits the total to ${interviewCap}/100. This assumes a conventional interview dress code.`);
+  if (skinRgb && !skinRelation) notes.push('Add or confirm an upper-body, outerwear or dress colour to include the selected photo patch in scoring.');
   const slots = new Set(items.map(item => GARMENTS[item.kind].slot));
   if (!slots.has('footwear')) notes.push('Footwear is not included; this estimate covers only the visible pieces you entered.');
   if (!slots.has('dress') && (!slots.has('upper') || !slots.has('lower'))) notes.push('The main outfit may be incomplete in this photo.');

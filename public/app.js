@@ -1,6 +1,6 @@
 import { OCCASIONS, SEASONS, GARMENTS, COLORS, PATTERNS, PREFERENCES, evaluateOutfit, suggestChange, applyChange, describeChange } from '/src/engine.js';
 import { sampleImageColour } from '/src/colour.js';
-import { comparePhotoSwatch } from '/src/palette.js';
+import { comparePhotoSwatch, describePhotoPatch } from '/src/palette.js';
 import { suggestGarments } from '/src/vision.js';
 
 const $ = id => document.getElementById(id);
@@ -13,12 +13,13 @@ const elements = {
   scoreContext: $('score-context'), dimensions: $('dimensions'), notes: $('score-notes'),
   suggestion: $('suggestion-content'), preference: $('preference'), season: $('season'), selfViewResult: $('self-view-result'),
   suggestButton: $('suggest-button'), visionStatus: $('vision-status'), visionPanel: $('vision-panel'),
-  visionList: $('vision-list'), applyVision: $('apply-vision'), skinButton: $('skin-button'), skinOutput: $('skin-output')
+  visionList: $('vision-list'), applyVision: $('apply-vision'), skinButton: $('skin-button'), skinOutput: $('skin-output'),
+  skinGoalGroup: $('skin-goal-group'), skinGoal: $('skin-goal')
 };
 
 const state = {
   occasion: 'casual', preference: 'none', season: 'none', items: [], photoUrl: null, source: null,
-  scored: false, samplingId: null, skinPicking: false, skinRgb: null,
+  scored: false, samplingId: null, skinPicking: false, skinRgb: null, contrastGoal: 'balanced',
   previewOriginal: null, selfView: 'uncertain', recordedView: null, nextId: 1
 };
 
@@ -51,6 +52,9 @@ function setPhoto(src, source, alt) {
   state.samplingId = null;
   state.skinPicking = false;
   state.skinRgb = null;
+  state.contrastGoal = 'balanced';
+  elements.skinGoal.value = 'balanced';
+  elements.skinGoalGroup.hidden = true;
   state.recordedView = null;
   document.querySelectorAll('input[name="self-view"]').forEach(input => { input.disabled = false; });
   elements.skinOutput.hidden = true;
@@ -148,11 +152,11 @@ function renderSkinComparison() {
   swatch.setAttribute('aria-hidden', 'true');
   const copy = document.createElement('span');
   copy.textContent = compared.length
-    ? `Photo colour sampled. ${compared.map(entry => {
+    ? `${describePhotoPatch(state.skinRgb)} ${compared.map(entry => {
       const piece = state.items.find(item => item.id === entry.id);
       return `${entry.label} ${GARMENTS[piece.kind].label.toLowerCase()}: ${entry.contrast}`;
-    }).join('; ')} light/dark contrast. This does not change the score.`
-    : 'Photo colour sampled. Add garment colours to compare light/dark contrast. This does not change the score.';
+    }).join('; ')} light/dark contrast. Only upper-body, outerwear and dress colours contribute to the optional 8% near-face score.`
+    : `${describePhotoPatch(state.skinRgb)} Add garment colours to compare light/dark contrast.`;
   elements.skinOutput.replaceChildren(swatch, copy);
   elements.skinOutput.hidden = false;
 }
@@ -236,7 +240,7 @@ function makeDimension(dimension) {
 }
 
 function renderResult() {
-  const context = { occasion: state.occasion, preference: state.preference, season: state.season, items: state.items };
+  const context = { occasion: state.occasion, preference: state.preference, season: state.season, skinRgb: state.skinRgb, contrastGoal: state.contrastGoal, items: state.items };
   const result = evaluateOutfit(context);
   if (result.total === null) {
     state.scored = false;
@@ -334,8 +338,14 @@ elements.skinButton.addEventListener('click', () => {
   state.skinPicking = !state.skinPicking;
   state.samplingId = null;
   elements.photoArea.classList.toggle('sampling', state.skinPicking);
-  photoFeedback(state.skinPicking ? 'Tap a visible skin area in the photo, then check the sampled colour.' : 'Colour comparison cancelled.');
+  photoFeedback(state.skinPicking ? 'Tap a visible skin area in the photo. You will return to the comparison below.' : 'Skin colour picking cancelled.');
   renderItems();
+  if (state.skinPicking) elements.photoArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+});
+elements.skinGoal.addEventListener('change', event => {
+  state.contrastGoal = event.target.value;
+  renderSkinComparison();
+  if (state.scored) renderResult();
 });
 document.getElementById('upload-button').addEventListener('click', () => elements.photoInput.click());
 elements.photoInput.addEventListener('change', event => loadUpload(event.target.files?.[0]));
@@ -400,6 +410,7 @@ elements.itemList.addEventListener('change', event => {
 });
 elements.photo.addEventListener('click', event => {
   if (!state.samplingId && !state.skinPicking) return;
+  const wasSkinPicking = state.skinPicking;
   try {
     const sampled = sampleImageColour(elements.photo, event.clientX, event.clientY);
     const area = elements.photoArea.getBoundingClientRect();
@@ -409,8 +420,9 @@ elements.photo.addEventListener('click', event => {
     if (state.skinPicking) {
       state.skinRgb = sampled.rgb;
       state.skinPicking = false;
+      elements.skinGoalGroup.hidden = false;
       renderSkinComparison();
-      photoFeedback('Photo colour sampled for a light/dark comparison. Lighting can change the result; it does not affect your score.');
+      photoFeedback('Photo colour sampled. Review its description and your contrast goal below; the score will update if you have already revealed it.');
     } else {
       const piece = state.items.find(entry => entry.id === state.samplingId);
       if (piece) piece.color = sampled.colour;
@@ -420,6 +432,7 @@ elements.photo.addEventListener('click', event => {
     }
     elements.photoArea.classList.remove('sampling');
     renderItems();
+    if (wasSkinPicking) elements.skinGoalGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
   } catch (error) {
     photoFeedback(error.message, true);
   }
