@@ -13,7 +13,8 @@ const zones = [
     ['dress', 'a photo of a dress']
   ] },
   { name: 'Footwear', rect: [0.20, 0.75, 0.80, 1], candidates: [
-    ['sneakers', 'a photo of trainers or sneakers'], ['sandals', 'a photo of sandals'],
+    ['sneakers', 'a photo of trainers or sneakers'], ['sandals', 'a photo of casual sandals or flip-flops'],
+    ['dressSandals', 'a photo of dress sandals'],
     ['boots', 'a photo of boots'], ['loafers', 'a photo of smart shoes or loafers']
   ] }
 ];

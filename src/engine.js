@@ -6,7 +6,7 @@ import { assessNearFaceContrast, CONTRAST_GOALS } from './appearance.js';
 
 export const OCCASIONS = {
   casual: { label: 'Casual day', target: 1 },
-  dinner: { label: 'Dinner out', target: 2 },
+  dinner: { label: 'Dinner out (smart casual)', target: 2 },
   interview: { label: 'Interview (conventional)', target: 3 }
 };
 
@@ -30,7 +30,8 @@ export const GARMENTS = {
   blazer: { label: 'Blazer', slot: 'outerwear', formality: 3 },
   jacket: { label: 'Casual jacket', slot: 'outerwear', formality: 1 },
   sneakers: { label: 'Trainers', slot: 'footwear', formality: 1 },
-  sandals: { label: 'Sandals', slot: 'footwear', formality: 1 },
+  sandals: { label: 'Casual sandals / flip-flops', slot: 'footwear', formality: 1 },
+  dressSandals: { label: 'Dress sandals', slot: 'footwear', formality: 2 },
   boots: { label: 'Boots', slot: 'footwear', formality: 2 },
   loafers: { label: 'Smart shoes', slot: 'footwear', formality: 3 }
 };
@@ -89,6 +90,12 @@ export function evaluateOutfit({ occasion, preference = 'none', season = 'none',
   const target = OCCASIONS[occasion].target;
   const distance = items.reduce((sum, item) => sum + Math.abs(GARMENTS[item.kind].formality - target), 0) / items.length;
   const interviewConflicts = [];
+  const dinnerConflicts = [];
+  if (occasion === 'dinner') {
+    if (kinds.includes('shorts')) dinnerConflicts.push('shorts');
+    if (kinds.includes('sandals')) dinnerConflicts.push('casual sandals or flip-flops');
+    if (items.some(item => item.kind === 'tshirt' && item.pattern === 'print')) dinnerConflicts.push('a printed T-shirt');
+  }
   if (occasion === 'interview') {
     if (kinds.includes('shorts')) interviewConflicts.push('shorts');
     else if (kinds.includes('jeans')) interviewConflicts.push('jeans');
@@ -100,14 +107,18 @@ export function evaluateOutfit({ occasion, preference = 'none', season = 'none',
   if (interviewConflicts.length >= 3) occasionScore = Math.min(occasionScore, 20);
   else if (interviewConflicts.length === 2) occasionScore = Math.min(occasionScore, 35);
   else if (interviewConflicts.length === 1) occasionScore = Math.min(occasionScore, 60);
-  const conflictList = interviewConflicts.length > 1
-    ? `${interviewConflicts.slice(0, -1).join(', ')} and ${interviewConflicts.at(-1)}`
-    : interviewConflicts[0];
-  const occasionReason = interviewConflicts.length
-    ? `${conflictList[0].toUpperCase()}${conflictList.slice(1)} ${interviewConflicts.length === 1 ? 'is' : 'are'} less suited to a conventional interview.`
+  if (dinnerConflicts.length >= 3) occasionScore = Math.min(occasionScore, 35);
+  else if (dinnerConflicts.length === 2) occasionScore = Math.min(occasionScore, 50);
+  else if (dinnerConflicts.length === 1) occasionScore = Math.min(occasionScore, 70);
+  const conflicts = occasion === 'interview' ? interviewConflicts : dinnerConflicts;
+  const conflictList = conflicts.length > 1
+    ? `${conflicts.slice(0, -1).join(', ')} and ${conflicts.at(-1)}`
+    : conflicts[0];
+  const occasionReason = conflicts.length
+    ? `${conflictList[0].toUpperCase()}${conflictList.slice(1)} ${conflicts.length === 1 ? 'is' : 'are'} less suited to ${occasion === 'interview' ? 'a conventional interview' : 'a smart-casual dinner'}.`
     : occasionScore >= 85
       ? `Most entered pieces match the ${OCCASIONS[occasion].label.toLowerCase()} setting.`
-      : `The entered garment types are more casual than the selected ${OCCASIONS[occasion].label.toLowerCase()} setting.`;
+      : `The entered garment types differ in formality from the selected ${OCCASIONS[occasion].label.toLowerCase()} setting.`;
 
   let pairing = 80;
   const pairingReasons = [];
@@ -195,14 +206,17 @@ export function evaluateOutfit({ occasion, preference = 'none', season = 'none',
   dimensions.push({ key: 'preference', label: 'Your preference', score: preferenceScore, weight: 10, reason: preferenceReason });
   const weightedTotal = clamp(dimensions.reduce((sum, d) => sum + d.score * d.weight / 100, 0));
   const interviewCap = interviewConflicts.length >= 3 ? 30 : interviewConflicts.length === 2 ? 45 : interviewConflicts.length === 1 ? 65 : null;
-  const total = interviewCap === null ? weightedTotal : Math.min(weightedTotal, interviewCap);
+  const dinnerCap = dinnerConflicts.length >= 3 ? 50 : dinnerConflicts.length === 2 ? 60 : dinnerConflicts.length === 1 ? 75 : null;
+  const cap = occasion === 'interview' ? interviewCap : dinnerCap;
+  const total = cap === null ? weightedTotal : Math.min(weightedTotal, cap);
   const notes = [];
   if (interviewCap !== null && weightedTotal > interviewCap) notes.push(`The weighted components total ${weightedTotal}/100, but interview suitability limits the total to ${interviewCap}/100. This assumes a conventional interview dress code.`);
+  if (dinnerCap !== null && weightedTotal > dinnerCap) notes.push(`The weighted components total ${weightedTotal}/100, but smart-casual dinner suitability limits the total to ${dinnerCap}/100. A very casual venue may have different expectations.`);
   if (skinRgb && !skinRelation) notes.push('Add or confirm an upper-body, outerwear or dress colour to include the selected photo patch in scoring.');
   const slots = new Set(items.map(item => GARMENTS[item.kind].slot));
   if (!slots.has('footwear')) notes.push('Footwear is not included; this estimate covers only the visible pieces you entered.');
   if (!slots.has('dress') && (!slots.has('upper') || !slots.has('lower'))) notes.push('The main outfit may be incomplete in this photo.');
-  return { total, dimensions, notes, weightedTotal, cap: interviewCap };
+  return { total, dimensions, notes, weightedTotal, cap };
 }
 
 export function applyChange(items, change) {

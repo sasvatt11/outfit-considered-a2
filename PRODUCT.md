@@ -30,7 +30,7 @@ Assignment 2 for Intelligent Interactive Systems. The submitted project needs in
 - An optional user-selected skin-area sample describes the photographed patch. After sampling, the user's chosen soft/balanced/bold contrast goal is compared with colours worn near the face and receives 8% of the weighted score. No identity or universal skin-tone palette is inferred; interview caps still take priority.
 - A recorded pre-score judgement is shown beside the result but does not alter it. The chosen style direction affects only the preference portion of the score.
 - An optional season provides a small palette cue, without claiming to assess weather comfort or a universal colour trend.
-- A local knowledge-based engine prioritises occasion suitability, caps conventional-interview scores with major garment conflicts, explains its score, and compares a suggested swap. The caps are prototype design decisions, not validated fashion measures.
+- A local knowledge-based engine prioritises occasion suitability, caps conventional-interview and smart-casual dinner scores with major garment conflicts, explains its score, and compares a suggested swap. Casual flip-flops and dress sandals are distinct inputs. The caps are prototype design decisions, not validated fashion measures.
 - No paid service, account or API key is needed.
 - The prototype must label sample data and unfinished capabilities accurately.
 

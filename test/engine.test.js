@@ -75,6 +75,42 @@ test('a coordinated palette cannot mask three interview garment conflicts', () =
   assert.ok(next && next.after > result.total);
 });
 
+test('a printed T-shirt, shorts and sandals do not receive a high smart-casual dinner score', () => {
+  const items = [
+    { id: '1', kind: 'tshirt', color: 'cream', pattern: 'print' },
+    { id: '2', kind: 'shorts', color: 'white', pattern: 'solid' },
+    { id: '3', kind: 'sandals', color: 'black', pattern: 'solid' }
+  ];
+  const context = { occasion: 'dinner', season: 'autumn', preference: 'earth', skinRgb: [180, 130, 105], items };
+  const result = evaluateOutfit(context);
+  assert.equal(result.total, 50);
+  assert.equal(result.cap, 50);
+  assert.match(result.dimensions[0].reason, /shorts.*casual sandals.*printed T-shirt.*smart-casual dinner/i);
+  assert.match(result.notes[0], /smart-casual dinner suitability/);
+  const suggestion = suggestChange(context);
+  assert.ok(suggestion && suggestion.after > result.total);
+});
+
+test('smart-casual dinner clothes are not capped', () => {
+  const items = [
+    { id: '1', kind: 'knit', color: 'cream', pattern: 'solid' },
+    { id: '2', kind: 'trousers', color: 'navy', pattern: 'solid' },
+    { id: '3', kind: 'loafers', color: 'brown', pattern: 'solid' }
+  ];
+  const result = evaluateOutfit({ occasion: 'dinner', items });
+  assert.equal(result.cap, null);
+  assert.ok(result.total > 75);
+});
+
+test('dress sandals are not treated as casual flip-flops', () => {
+  const items = [
+    { id: '1', kind: 'dress', color: 'navy', pattern: 'solid' },
+    { id: '2', kind: 'dressSandals', color: 'black', pattern: 'solid' }
+  ];
+  const result = evaluateOutfit({ occasion: 'dinner', items });
+  assert.equal(result.cap, null);
+});
+
 test('season is a small palette cue, never a substitute for occasion', () => {
   const noSeason = evaluateOutfit({ occasion: 'interview', items: casual });
   const summer = evaluateOutfit({ occasion: 'interview', season: 'summer', items: casual });
