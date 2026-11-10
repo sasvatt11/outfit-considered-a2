@@ -60,6 +60,28 @@ test('shorts and sandals can be scored and revised for a different occasion', ()
   assert.ok(suggestion && suggestion.gain >= 4);
 });
 
+test('a coordinated palette cannot mask three interview garment conflicts', () => {
+  const items = [
+    { id: '1', kind: 'tshirt', color: 'cream', pattern: 'print' },
+    { id: '2', kind: 'shorts', color: 'white', pattern: 'solid' },
+    { id: '3', kind: 'sandals', color: 'black', pattern: 'solid' }
+  ];
+  const result = evaluateOutfit({ occasion: 'interview', items, season: 'summer' });
+  assert.equal(result.total, 30);
+  assert.equal(result.cap, 30);
+  assert.match(result.dimensions[0].reason, /shorts.*sandals.*printed T-shirt/i);
+  assert.match(result.notes[0], /limits the total/);
+  const next = suggestChange({ occasion: 'interview', items, season: 'summer' });
+  assert.ok(next && next.after > result.total);
+});
+
+test('season is a small palette cue, never a substitute for occasion', () => {
+  const noSeason = evaluateOutfit({ occasion: 'interview', items: casual });
+  const summer = evaluateOutfit({ occasion: 'interview', season: 'summer', items: casual });
+  assert.equal(noSeason.total, summer.total);
+  assert.ok(summer.dimensions[2].score - noSeason.dimensions[2].score <= 4);
+});
+
 test('chosen earth-tone direction affects only the preference component', () => {
   const items = [
     { id: '1', kind: 'knit', color: 'orange', pattern: 'solid' },

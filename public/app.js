@@ -1,4 +1,4 @@
-import { OCCASIONS, GARMENTS, COLORS, PATTERNS, PREFERENCES, evaluateOutfit, suggestChange, applyChange, describeChange } from '/src/engine.js';
+import { OCCASIONS, SEASONS, GARMENTS, COLORS, PATTERNS, PREFERENCES, evaluateOutfit, suggestChange, applyChange, describeChange } from '/src/engine.js';
 import { sampleImageColour } from '/src/colour.js';
 import { comparePhotoSwatch } from '/src/palette.js';
 import { suggestGarments } from '/src/vision.js';
@@ -11,21 +11,21 @@ const elements = {
   addItem: $('add-item'), scoreButton: $('score-button'), inputError: $('input-error'),
   resultEmpty: $('result-empty'), resultContent: $('result-content'), scoreValue: $('score-value'),
   scoreContext: $('score-context'), dimensions: $('dimensions'), notes: $('score-notes'),
-  suggestion: $('suggestion-content'), preference: $('preference'), selfViewResult: $('self-view-result'),
+  suggestion: $('suggestion-content'), preference: $('preference'), season: $('season'), selfViewResult: $('self-view-result'),
   suggestButton: $('suggest-button'), visionStatus: $('vision-status'), visionPanel: $('vision-panel'),
   visionList: $('vision-list'), applyVision: $('apply-vision'), skinButton: $('skin-button'), skinOutput: $('skin-output')
 };
 
 const state = {
-  occasion: 'casual', preference: 'none', items: [], photoUrl: null, source: null,
+  occasion: 'casual', preference: 'none', season: 'none', items: [], photoUrl: null, source: null,
   scored: false, samplingId: null, skinPicking: false, skinRgb: null,
   previewOriginal: null, selfView: 'uncertain', recordedView: null, nextId: 1
 };
 
 const samples = {
-  casual: { src: '/assets/sample-casual.webp', alt: 'AI-generated sample: blue T-shirt, dark jeans and white trainers.', occasion: 'casual', preference: 'none', items: [['tshirt', 'blue'], ['jeans', 'navy'], ['sneakers', 'white']] },
-  interview: { src: '/assets/sample-interview.webp', alt: 'AI-generated sample: adult woman in a cream blouse, charcoal blazer, navy trousers and black loafers.', occasion: 'interview', preference: 'none', items: [['shirt', 'cream'], ['blazer', 'grey'], ['trousers', 'navy'], ['loafers', 'black']] },
-  earth: { src: '/assets/sample-earth.webp', alt: 'AI-generated sample: adult person in a rust sweater, brown jacket, beige trousers and brown boots.', occasion: 'dinner', preference: 'earth', items: [['knit', 'orange'], ['jacket', 'brown'], ['trousers', 'beige'], ['boots', 'brown']] }
+  casual: { src: '/assets/sample-casual.webp', alt: 'AI-generated sample: blue T-shirt, dark jeans and white trainers.', occasion: 'casual', preference: 'none', season: 'none', items: [['tshirt', 'blue'], ['jeans', 'navy'], ['sneakers', 'white']] },
+  interview: { src: '/assets/sample-interview.webp', alt: 'AI-generated sample: adult woman in a cream blouse, charcoal blazer, navy trousers and black loafers.', occasion: 'interview', preference: 'none', season: 'none', items: [['shirt', 'cream'], ['blazer', 'grey'], ['trousers', 'navy'], ['loafers', 'black']] },
+  earth: { src: '/assets/sample-earth.webp', alt: 'AI-generated sample: adult person in a rust sweater, brown jacket, beige trousers and brown boots.', occasion: 'dinner', preference: 'earth', season: 'autumn', items: [['knit', 'orange'], ['jacket', 'brown'], ['trousers', 'beige'], ['boots', 'brown']] }
 };
 
 function item(kind = 'tshirt', color = null, pattern = 'solid') {
@@ -79,10 +79,12 @@ function loadSample(sampleId) {
   state.items = sample.items.map(([kind, color]) => item(kind, color));
   state.occasion = sample.occasion;
   state.preference = sample.preference;
+  state.season = sample.season;
   state.selfView = 'uncertain';
   document.querySelector(`[name="occasion"][value="${sample.occasion}"]`).checked = true;
   document.querySelector('[name="self-view"][value="uncertain"]').checked = true;
   elements.preference.value = sample.preference;
+  elements.season.value = sample.season;
   photoFeedback('AI-generated sample image and its garment labels are provided for demonstration. You can edit every label or try the vision model separately.');
   renderItems();
 }
@@ -133,7 +135,7 @@ async function loadUpload(file) {
   state.items = [];
   state.selfView = 'uncertain';
   document.querySelector('[name="self-view"][value="uncertain"]').checked = true;
-  photoFeedback(`Photo added locally. Current context: ${OCCASIONS[state.occasion].label}; style: ${PREFERENCES[state.preference]}. Check or change these, then review garment suggestions before scoring.`);
+  photoFeedback(`Photo added locally. Current context: ${OCCASIONS[state.occasion].label}; season: ${SEASONS[state.season]}; style: ${PREFERENCES[state.preference]}. Check or change these, then review garment suggestions before scoring.`);
   renderItems();
 }
 
@@ -234,7 +236,7 @@ function makeDimension(dimension) {
 }
 
 function renderResult() {
-  const context = { occasion: state.occasion, preference: state.preference, items: state.items };
+  const context = { occasion: state.occasion, preference: state.preference, season: state.season, items: state.items };
   const result = evaluateOutfit(context);
   if (result.total === null) {
     state.scored = false;
@@ -429,6 +431,11 @@ document.querySelectorAll('input[name="occasion"]').forEach(input => input.addEv
 }));
 elements.preference.addEventListener('change', event => {
   state.preference = event.target.value;
+  state.previewOriginal = null;
+  if (state.scored) renderResult();
+});
+elements.season.addEventListener('change', event => {
+  state.season = event.target.value;
   state.previewOriginal = null;
   if (state.scored) renderResult();
 });

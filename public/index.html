@@ -34,9 +34,13 @@
             <label class="choice"><input type="radio" name="occasion" value="dinner"><span>Dinner out</span></label>
             <label class="choice"><input type="radio" name="occasion" value="interview"><span>Interview</span></label>
           </div></fieldset>
+          <p class="helper-text">Interview assumes a conventional dress code. Workplace norms vary.</p>
+          <label class="field-label" for="season">Time of year <span class="optional-label">Optional</span></label>
+          <select id="season" class="wide-select"><option value="none">No season selected</option><option value="spring">Spring</option><option value="summer">Summer</option><option value="autumn">Autumn</option><option value="winter">Winter</option></select>
+          <p class="helper-text">Season adds at most four points to the colour component for a broad palette cue. It does not judge warmth or weather suitability.</p>
           <label class="field-label" for="preference">Style direction <span class="optional-label">Optional</span></label>
           <select id="preference" class="wide-select"><option value="none">No colour or style direction</option><option value="minimal">Understated</option><option value="expressive">Bright or expressive</option><option value="earth">Earth tones</option><option value="cool">Cool tones</option></select>
-          <p class="helper-text">Your choice affects only the 15% “Your preference” part of the score. It is never inferred from your appearance.</p>
+          <p class="helper-text">Your choice affects only the 10% “Your preference” part of the score. It is never inferred from your appearance.</p>
 
           <div class="section-divider"></div>
           <div class="section-top"><span class="step-number">02</span><div><h3>Add your photo</h3><p>Your photo stays in this browser. Tap it to sample a garment colour.</p></div></div>
@@ -70,11 +74,11 @@
           <div id="result-content" class="result-content" hidden>
             <div class="score-header"><div><p class="score-subtitle">Contextual fit estimate</p><div class="score-number"><strong id="score-value" aria-live="polite">—</strong><span>/ 100</span></div></div><span id="score-context" class="score-context"></span></div>
             <p id="self-view-result" class="self-view-result" hidden></p>
-            <p class="score-disclaimer">A transparent prototype score, not an objective measure of style. The weights below are design choices.</p>
+            <p class="score-disclaimer">A transparent prototype score, not an objective measure of style. The weights below are design choices. A major interview mismatch can cap the total even when colours coordinate.</p>
             <div id="dimensions" class="dimensions"></div>
             <div id="score-notes" class="score-notes" hidden></div>
             <div class="suggestion-block"><div class="suggestion-heading"><span class="suggestion-icon" aria-hidden="true">↗</span><h3>One change to explore</h3></div><div id="suggestion-content"></div></div>
-            <div class="method-note"><h3>How this works</h3><p>Photo: kept in this browser. Garments: suggested by a free local vision model when requested, then reviewed by you. Colours: sampled from pixels and confirmed by you. Score and swap: calculated by editable rules. Your pre-score view and sampled skin colour do not affect the score. No gender is inferred.</p></div>
+            <div class="method-note"><h3>How this works</h3><p>Photo: kept in this browser. Garments: suggested by a free local vision model when requested, then reviewed by you. Colours: sampled from pixels and confirmed by you. Score and swap: calculated by inspectable rules. Occasion has priority; season is a small optional palette cue. Your pre-score view and sampled skin colour do not affect the score. No gender is inferred.</p></div>
           </div>
         </aside>
       </div>

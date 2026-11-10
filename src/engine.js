@@ -6,7 +6,15 @@
 export const OCCASIONS = {
   casual: { label: 'Casual day', target: 1 },
   dinner: { label: 'Dinner out', target: 2 },
-  interview: { label: 'Interview', target: 3 }
+  interview: { label: 'Interview (conventional)', target: 3 }
+};
+
+export const SEASONS = {
+  none: 'No season selected',
+  spring: 'Spring',
+  summer: 'Summer',
+  autumn: 'Autumn',
+  winter: 'Winter'
 };
 
 export const GARMENTS = {
@@ -66,9 +74,10 @@ function checkItems(items) {
   );
 }
 
-export function evaluateOutfit({ occasion, preference = 'none', items }) {
+export function evaluateOutfit({ occasion, preference = 'none', season = 'none', items }) {
   if (!OCCASIONS[occasion]) throw new Error('Choose a supported occasion.');
   if (!PREFERENCES[preference]) throw new Error('Choose a supported preference.');
+  if (!SEASONS[season]) throw new Error('Choose a supported season.');
   if (!checkItems(items)) throw new Error('Review the garment details before scoring.');
   if (items.length < 2) {
     return { total: null, dimensions: [], notes: ['Add at least two visible garments to receive an estimate.'] };
@@ -77,10 +86,26 @@ export function evaluateOutfit({ occasion, preference = 'none', items }) {
   const kinds = items.map(item => item.kind);
   const target = OCCASIONS[occasion].target;
   const distance = items.reduce((sum, item) => sum + Math.abs(GARMENTS[item.kind].formality - target), 0) / items.length;
-  const occasionScore = clamp(100 - distance * 28);
-  const occasionReason = occasionScore >= 85
-    ? `Most visible pieces match the ${OCCASIONS[occasion].label.toLowerCase()} setting.`
-    : `Some pieces sit away from the formality level chosen for ${OCCASIONS[occasion].label.toLowerCase()}.`;
+  const interviewConflicts = [];
+  if (occasion === 'interview') {
+    if (kinds.includes('shorts')) interviewConflicts.push('shorts');
+    else if (kinds.includes('jeans')) interviewConflicts.push('jeans');
+    if (kinds.includes('sandals')) interviewConflicts.push('sandals');
+    else if (kinds.includes('sneakers')) interviewConflicts.push('trainers');
+    if (kinds.includes('tshirt')) interviewConflicts.push(items.some(item => item.kind === 'tshirt' && item.pattern === 'print') ? 'a printed T-shirt' : 'a T-shirt');
+  }
+  let occasionScore = clamp(100 - distance * 28);
+  if (interviewConflicts.length >= 3) occasionScore = Math.min(occasionScore, 20);
+  else if (interviewConflicts.length === 2) occasionScore = Math.min(occasionScore, 35);
+  else if (interviewConflicts.length === 1) occasionScore = Math.min(occasionScore, 60);
+  const conflictList = interviewConflicts.length > 1
+    ? `${interviewConflicts.slice(0, -1).join(', ')} and ${interviewConflicts.at(-1)}`
+    : interviewConflicts[0];
+  const occasionReason = interviewConflicts.length
+    ? `${conflictList[0].toUpperCase()}${conflictList.slice(1)} ${interviewConflicts.length === 1 ? 'is' : 'are'} less suited to a conventional interview.`
+    : occasionScore >= 85
+      ? `Most entered pieces match the ${OCCASIONS[occasion].label.toLowerCase()} setting.`
+      : `The entered garment types are more casual than the selected ${OCCASIONS[occasion].label.toLowerCase()} setting.`;
 
   let pairing = 80;
   const pairingReasons = [];
@@ -117,19 +142,21 @@ export function evaluateOutfit({ occasion, preference = 'none', items }) {
 
   const coloured = items.filter(item => !COLORS[item.color].neutral);
   const hueCount = new Set(coloured.map(item => item.color)).size;
-  let colourScore = 84;
-  if (hueCount === 1 && coloured.length > 1) colourScore += 10;
-  if (hueCount === 2) colourScore -= 5;
-  if (hueCount >= 3) colourScore -= 22;
-  const colourReason = hueCount >= 3
-    ? 'Three or more distinct accent colours make the palette busier.'
-    : hueCount === 0 ? 'The selected colours form a neutral palette.'
-    : 'The palette has a limited number of accent colours.';
+  let colourScore = hueCount === 0 ? 80 : hueCount === 1 ? 85 : hueCount === 2 ? 79 : 68;
+  const seasonalPalettes = {
+    spring: new Set(['cream', 'beige', 'pink', 'blue', 'green', 'yellow', 'orange']),
+    summer: new Set(['white', 'cream', 'beige', 'blue', 'green', 'pink', 'yellow']),
+    autumn: new Set(['cream', 'beige', 'brown', 'orange', 'green', 'navy']),
+    winter: new Set(['black', 'white', 'grey', 'navy', 'blue', 'red', 'purple'])
+  };
+  const seasonalMatches = season === 'none' ? 0 : items.filter(item => seasonalPalettes[season].has(item.color)).length;
+  if (season !== 'none') colourScore += Math.round(4 * seasonalMatches / items.length);
+  const colourReason = `${hueCount === 0 ? 'The entered colours form a neutral palette.' : hueCount <= 2 ? 'The entered colours use a limited number of accent hues.' : 'Several accent hues make the palette more varied.'}${season === 'none' ? '' : ` ${seasonalMatches} of ${items.length} colours follow the optional ${SEASONS[season].toLowerCase()} palette cue; this adds at most four points to this component.`}`;
 
   const expressiveCount = items.filter(item => item.pattern !== 'solid' || !COLORS[item.color].neutral).length;
   const share = expressiveCount / items.length;
-  let preferenceScore = 82;
-  let preferenceReason = 'No personal style preference was specified.';
+  let preferenceScore = 75;
+  let preferenceReason = 'No style direction was specified; this component stays neutral.';
   if (preference === 'minimal') {
     preferenceScore = clamp(100 - share * 45);
     preferenceReason = share <= 0.25 ? 'The outfit follows your understated preference.' : 'Several selected pieces are more expressive than your stated preference.';
@@ -148,17 +175,20 @@ export function evaluateOutfit({ occasion, preference = 'none', items }) {
   }
 
   const dimensions = [
-    { key: 'occasion', label: 'Occasion fit', score: occasionScore, weight: 40, reason: occasionReason },
-    { key: 'pairing', label: 'Garment pairing', score: pairingScore, weight: 25, reason: pairingReasons.join(' ') },
-    { key: 'colour', label: 'Colour balance', score: clamp(colourScore), weight: 20, reason: colourReason },
-    { key: 'preference', label: 'Your preference', score: preferenceScore, weight: 15, reason: preferenceReason }
+    { key: 'occasion', label: 'Occasion fit', score: occasionScore, weight: 55, reason: occasionReason },
+    { key: 'pairing', label: 'Garment pairing', score: pairingScore, weight: 20, reason: pairingReasons.join(' ') },
+    { key: 'colour', label: 'Colour balance', score: clamp(colourScore), weight: 15, reason: colourReason },
+    { key: 'preference', label: 'Your preference', score: preferenceScore, weight: 10, reason: preferenceReason }
   ];
-  const total = clamp(dimensions.reduce((sum, d) => sum + d.score * d.weight / 100, 0));
+  const weightedTotal = clamp(dimensions.reduce((sum, d) => sum + d.score * d.weight / 100, 0));
+  const interviewCap = interviewConflicts.length >= 3 ? 30 : interviewConflicts.length === 2 ? 45 : interviewConflicts.length === 1 ? 65 : null;
+  const total = interviewCap === null ? weightedTotal : Math.min(weightedTotal, interviewCap);
   const notes = [];
+  if (interviewCap !== null && weightedTotal > interviewCap) notes.push(`The weighted components total ${weightedTotal}/100, but interview suitability limits the total to ${interviewCap}/100. This assumes a conventional interview dress code.`);
   const slots = new Set(items.map(item => GARMENTS[item.kind].slot));
   if (!slots.has('footwear')) notes.push('Footwear is not included; this estimate covers only the visible pieces you entered.');
   if (!slots.has('dress') && (!slots.has('upper') || !slots.has('lower'))) notes.push('The main outfit may be incomplete in this photo.');
-  return { total, dimensions, notes };
+  return { total, dimensions, notes, weightedTotal, cap: interviewCap };
 }
 
 export function applyChange(items, change) {
@@ -179,8 +209,8 @@ export function suggestChange(context) {
   for (const item of context.items) {
     if (context.occasion === 'interview') {
       if (item.kind === 'sneakers' || item.kind === 'boots' || item.kind === 'sandals') offer(item, { kind: 'loafers' }, 'Smart shoes may align more closely with the interview setting.');
-      if (item.kind === 'tshirt') offer(item, { kind: 'shirt' }, 'A shirt or blouse may better match this setting.');
-      if (item.kind === 'jeans' || item.kind === 'shorts') offer(item, { kind: 'trousers' }, 'Tailored trousers may give the outfit a more consistent level of dress.');
+      if (item.kind === 'tshirt') offer(item, { kind: 'shirt', pattern: 'solid' }, 'A plain shirt or blouse may better match this setting.');
+      if (item.kind === 'jeans' || item.kind === 'shorts') offer(item, { kind: 'trousers', pattern: 'solid' }, 'Tailored trousers may give the outfit a more consistent level of dress.');
     }
     if (context.occasion === 'dinner') {
       if (item.kind === 'sneakers' || item.kind === 'sandals') offer(item, { kind: 'boots' }, 'Boots may bring the footwear closer to the selected dinner setting.');

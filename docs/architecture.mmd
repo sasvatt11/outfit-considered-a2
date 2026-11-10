@@ -6,7 +6,7 @@ flowchart LR
     V -->|guesses to review| E
     P -->|clicked garment pixels| C[Colour sampler<br/>implemented]
     C -->|suggested colour| E
-    U -->|occasion + style direction| X[Context input<br/>implemented]
+    U -->|occasion + optional season + style| X[Context input<br/>implemented]
     X --> R[Local rule engine<br/>implemented]
     E --> R
     R -->|score, reasons, swap| O[Result + Undo<br/>implemented]
