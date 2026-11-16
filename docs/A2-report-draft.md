@@ -5,9 +5,9 @@
 **Student:** Sasvattram Seetharaman (2689646)
 **Total report word count:** approximately 1,174 (abstract 157 + main report 1,017)
 **Abstract word count:** 157
-**Repository:** [github.com/sasvatt11/outfit-considered-a2](https://github.com/sasvatt11/outfit-considered-a2)
-**README:** [project README](https://github.com/sasvatt11/outfit-considered-a2/blob/main/README.md)
-**Submitted release:** [a2-submission](https://github.com/sasvatt11/outfit-considered-a2/releases/tag/a2-submission)
+**Repository:** Local Git repository; not published
+**README:** README.md in the project folder
+**Project version:** Local tag a2-local-final
 
 ## Abstract
 
