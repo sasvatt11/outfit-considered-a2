@@ -1,16 +1,17 @@
-# Outfit, considered.: a contextual outfit checker
+# Outfit, considered — a contextual outfit checker
 
-**Assignment:** Assignment 2 — Project Report  
-**Module:** Intelligent Interactive Systems  
-**Total report word count:** approximately 1,146 (abstract 157 + main report 989)
+**Assignment:** Assignment 2 — Project Report
+**Module:** Intelligent Interactive Systems
+**Student:** Sasvattram Seetharaman (2689646)
+**Total report word count:** approximately 1,174 (abstract 157 + main report 1,017)
 **Abstract word count:** 157
-**Repository:** [add public GitHub URL before submission]  
-**README:** [add public README URL before submission]  
-**Submitted commit:** [replace with final commit SHA]
+**Repository:** [github.com/sasvatt11/outfit-considered-a2](https://github.com/sasvatt11/outfit-considered-a2)
+**README:** [project README](https://github.com/sasvatt11/outfit-considered-a2/blob/main/README.md)
+**Submitted release:** [a2-submission](https://github.com/sasvatt11/outfit-considered-a2/releases/tag/a2-submission)
 
 ## Abstract
 
-An outfit rating can appear objective even though clothing choices depend on occasion and personal preference. I developed *Outfit, considered.*, a no-cost web prototype that makes those assumptions visible. A user chooses an occasion and optional season, uploads a photo, requests optional browser-run garment suggestions, then confirms or adds items and colours. They can record their own judgement before advice. A local rule engine explains four score components, or five after an optional skin-area sample, limits scores when major occasion mismatches remain, and offers one reversible swap. Three AI-generated photos provide repeatable walkthroughs; their labels are prefilled demonstration data, separate from the vision model. The photograph stays in the browser. A user-picked skin-area colour and contrast goal can affect 8% of the weighted score; gender is not inferred. The model checks three fixed image regions, so it can miss layers. This prototype demonstrates a correctable human–AI interaction; it does not establish fashion expertise or improved decisions.
+An outfit rating can appear objective even though clothing choices depend on occasion and personal preference. I developed *Outfit, considered.*, a no-cost web prototype that makes those assumptions visible. A user chooses an occasion and optional season, uploads a photo, requests optional browser-run garment suggestions, then confirms or adds items and colours. They can record their own judgement before advice. A local rule engine explains four score components, or five after an optional skin-area sample, limits scores when major occasion mismatches remain, and offers one reversible swap. Four AI-generated photos provide repeatable walkthroughs; their labels are prefilled demonstration data, separate from the vision model. The photograph stays in the browser. A user-picked skin-area colour and contrast goal can affect 8% of the weighted score; gender is not inferred. The model checks three fixed image regions, so it can miss layers. This prototype demonstrates a correctable human–AI interaction; it does not establish fashion expertise or improved decisions.
 
 ## Design rationale and project explanation
 
@@ -40,15 +41,15 @@ Figure 1 separates evidence and control. The photo stays in browser memory; mode
 
 *Figure 1. Implemented browser flow and optional model-file download.*
 
-### Developed interaction and checks
-
-Figure 2 shows three developed paths. The casual sample’s T-shirt, jeans and trainers score 94 with no needless swap. Changing its context to conventional interview lowers the estimate to 30; previewing a shirt raises it to 45, and Undo restores 30. On the new interview sample, the model suggested blouse, trousers and smart shoes but missed the blazer; the user can add it before scoring. These are prototype outputs and one smoke test, not measured accuracy or user benefit. All three sample photos are AI-generated with prefilled labels.
-
 ![Illustrated storyboards](storyboards.svg)
 
-*Figure 2. Three interactions showing restraint, a reversible swap and correction of garment guesses.*
+*Figure 2. Three developed paths show restraint, a reversible dinner swap and correction of garment guesses.*
 
-The project began with manual labels because a paid vision service conflicted with the no-cost constraint. I later added optional on-device CLIP inference and kept confirmation mandatory. A compatible model produced usable guesses on the interview sample but missed a layer. I added two samples. User testing exposed an implausible 67 interview score, prompting the occasion cap and research review. A later request led me to make the selected skin-area colour affect a user-directed contrast component and to scroll back to the photo for sampling. A further dinner test exposed the 74 score and led to the smart-casual cap. Automated checks cover these rules; the README records decisions and AI assistance.
+### Developed interaction and checks
+
+Figure 2 shows three developed paths. The casual sample’s T-shirt, jeans and trainers score 94 with no needless swap. A synthetic dinner sample has a printed T-shirt, shorts and casual flip-flops; its score is 50 under the smart-casual assumption. Previewing knitwear raises the estimate to 60, and Undo restores 50. For the vision path, the interview image can be uploaded without its prefilled labels. In one smoke test the model suggested blouse, trousers and smart shoes but missed the blazer, which the user can add before scoring. These outputs do not establish recognition accuracy or user benefit. All four sample photos are AI-generated.
+
+The project began with manual labels because a paid vision service conflicted with the no-cost constraint. I later added optional on-device CLIP inference and kept confirmation mandatory. A compatible model produced usable guesses on the interview sample but missed a layer. User testing exposed an implausible 67 interview score, prompting the occasion cap and research review. A later request led me to make the selected skin-area colour affect a user-directed contrast component and to scroll back to the photo for sampling. A further dinner test exposed the 74 score and led to the smart-casual cap. I generated a separate synthetic image so this path can be replayed without publishing the user’s photo. Automated checks cover these rules; the README records decisions and AI assistance.
 
 ## References
 

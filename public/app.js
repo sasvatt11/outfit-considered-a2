@@ -25,6 +25,7 @@ const state = {
 
 const samples = {
   casual: { src: '/assets/sample-casual.webp', alt: 'AI-generated sample: blue T-shirt, dark jeans and white trainers.', occasion: 'casual', preference: 'none', season: 'none', items: [['tshirt', 'blue'], ['jeans', 'navy'], ['sneakers', 'white']] },
+  dinner: { src: '/assets/sample-dinner.webp', alt: 'AI-generated sample: adult in a printed cream T-shirt, white shorts and black casual flip-flops.', occasion: 'dinner', preference: 'earth', season: 'autumn', items: [['tshirt', 'cream', 'print'], ['shorts', 'white'], ['sandals', 'black']] },
   interview: { src: '/assets/sample-interview.webp', alt: 'AI-generated sample: adult woman in a cream blouse, charcoal blazer, navy trousers and black loafers.', occasion: 'interview', preference: 'none', season: 'none', items: [['shirt', 'cream'], ['blazer', 'grey'], ['trousers', 'navy'], ['loafers', 'black']] },
   earth: { src: '/assets/sample-earth.webp', alt: 'AI-generated sample: adult person in a rust sweater, brown jacket, beige trousers and brown boots.', occasion: 'dinner', preference: 'earth', season: 'autumn', items: [['knit', 'orange'], ['jacket', 'brown'], ['trousers', 'beige'], ['boots', 'brown']] }
 };
@@ -80,7 +81,7 @@ function loadSample(sampleId) {
   const sample = samples[sampleId];
   if (!sample) return;
   setPhoto(sample.src, 'sample', sample.alt);
-  state.items = sample.items.map(([kind, color]) => item(kind, color));
+  state.items = sample.items.map(([kind, color, pattern]) => item(kind, color, pattern));
   state.occasion = sample.occasion;
   state.preference = sample.preference;
   state.season = sample.season;
