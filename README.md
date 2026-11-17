@@ -1,6 +1,6 @@
 # Outfit, considered.
 
-**README prose word count:** approximately 930. Commands and headings are excluded.
+**README prose word count:** approximately 1,000. Commands, headings and link destinations are excluded.
 
 A no-cost, local prototype for exploring how an outfit fits a chosen occasion and personal style preference. It scores the *selected clothing details*, never the person.
 
@@ -14,7 +14,7 @@ A no-cost, local prototype for exploring how an outfit fits a chosen occasion an
 
 ## Technology and AI behaviour
 
-Plain HTML, CSS and JavaScript run on a dependency-free Node.js server. Optional [Transformers.js](https://github.com/huggingface/transformers.js) loads [Xenova CLIP](https://huggingface.co/Xenova/clip-vit-base-patch32) and compares image crops with garment descriptions in the browser. Its first use downloads about 160 MB; manual entry and scoring work offline. Canvas samples pixels. The local engine weights occasion (55%), pairing (20%), colour (15%) and style direction (10%). A selected skin-area patch reallocates 8% of colour to the user's chosen near-face contrast goal. Conventional-interview and smart-casual dinner mismatches can cap the total. Season adds at most four points to the colour component. These thresholds are design choices, not validated fashion measures. Photos stay in the browser; no paid API, account or key is required.
+Plain HTML, CSS and JavaScript run on a dependency-free Node.js server. Optional [Transformers.js](https://github.com/huggingface/transformers.js) loads [Xenova CLIP](https://huggingface.co/Xenova/clip-vit-base-patch32) and compares image crops with garment descriptions in the browser. Its first use downloads about 160 MB; manual entry and scoring work offline. Canvas samples pixels. The local engine weights occasion (55%), pairing (20%), colour (15%) and style direction (10%). A selected skin-area patch reallocates 8% of colour only when the user chooses a near-face contrast goal; “No contrast goal” leaves scoring unchanged. Conventional-interview and smart-casual dinner mismatches can cap the total. Season adds at most four points to the colour component. These thresholds are design choices, not validated fashion measures. Photos stay in the browser; no paid API, account or key is required.
 
 ## Run and inspect
 
@@ -24,7 +24,7 @@ Requires Node.js 20 or newer. From this folder:
 npm start
 ```
 
-Open `http://127.0.0.1:4173`. Use a sample or upload, drop or paste a JPEG, PNG or WebP up to 5 MB. Optional **Suggest garments from photo** gives guesses to review, correct or reject. Add missed pieces and confirm colours and patterns before scoring. **Pick colour from photo** samples a garment or skin-area patch; the latter also asks for a contrast goal. **Own view** records a pre-score judgement but does not affect the score. Run the checks with:
+Open `http://127.0.0.1:4173`. Use a sample or upload, drop or paste a JPEG, PNG or WebP up to 5 MB. Optional **Suggest garments from photo** gives guesses to review, correct or reject. Add missed pieces and confirm colours and patterns before scoring. **Pick colour from photo** samples a garment or skin-area patch; the latter offers an optional contrast goal. **Own view** records a pre-score judgement but does not affect the score. Run the checks with:
 
 ```sh
 npm test
@@ -44,7 +44,8 @@ See the [project report](output/pdf/A2_Project_Report.pdf), [architecture diagra
 | Context revision | Raised occasion priority after a printed T-shirt, shorts and flip-flops scored 67 for interview. | The same inputs now cap at 30 for a conventional interview; tests cover the cap. |
 | Skin-area comparison (`2e27bcf`) | Let a user-picked photo patch and personal contrast goal affect 8% of the score; avoided inferred skin categories. | Browser check changed an uncapped score when the goal changed; interview cap still held. |
 | Dinner revision (`7210462`) | A 74 dinner result prompted a stated smart-casual assumption, caps and separate flip-flop/dress-sandal labels. | Printed T-shirt, shorts and flip-flops now cap at 50; dress sandals do not trigger that conflict. |
-| Submission walkthrough | Generated a distinct synthetic dinner image so the path can be replayed without publishing the user's photograph. | Browser checked 94 with no swap, dinner 50 → 60 → 50 with Undo, and correction of the model's missed blazer. Fifteen automated checks pass. |
+| Submission walkthrough | Generated a distinct synthetic dinner image so the path can be replayed without publishing the user's photograph. | Browser checked 94 with no swap, dinner 50 → 60 → 50 with Undo, and correction of the model's missed blazer. |
+| Contrast control revision | Added “No contrast goal” so sampling alone does not imply a styling preference; explained all four options next to the control. | An automated check confirms the sample does not change the score until a goal is chosen. Sixteen checks pass. |
 
 ## AI assistance and authorship
 
@@ -52,4 +53,4 @@ The user chose the outfit-checking concept, no-paid-service constraint and reque
 
 ## Scope of the evidence
 
-The tests show that the code follows its stated rules; they do not establish fashion expertise or user benefit. One AI-generated photo was used to smoke-test vision suggestions, not measure accuracy. The model's similarity rankings are not calibrated probabilities. Crops assume a roughly centred, full-body photo. The user must identify a real skin area; the app does not verify it. Photo lighting can change the patch description and contrast band. The optional 8% near-face score follows the user's contrast goal, not a validated rule about skin colour or attractiveness.
+The tests show that the code follows its stated rules; they do not establish fashion expertise or user benefit. One AI-generated photo was used to smoke-test vision suggestions, not measure accuracy. The model's similarity rankings are not calibrated probabilities. Crops assume a roughly centred, full-body photo. The user must identify a real skin area; the app does not verify it. Photo lighting can change the patch description and contrast band. The optional 8% near-face score applies only with a chosen goal; it is not a validated rule about skin colour or attractiveness.

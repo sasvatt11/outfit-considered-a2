@@ -19,7 +19,7 @@ const elements = {
 
 const state = {
   occasion: 'casual', preference: 'none', season: 'none', items: [], photoUrl: null, source: null,
-  scored: false, samplingId: null, skinPicking: false, skinRgb: null, contrastGoal: 'balanced',
+  scored: false, samplingId: null, skinPicking: false, skinRgb: null, contrastGoal: 'none',
   previewOriginal: null, selfView: 'uncertain', recordedView: null, nextId: 1
 };
 
@@ -53,8 +53,8 @@ function setPhoto(src, source, alt) {
   state.samplingId = null;
   state.skinPicking = false;
   state.skinRgb = null;
-  state.contrastGoal = 'balanced';
-  elements.skinGoal.value = 'balanced';
+  state.contrastGoal = 'none';
+  elements.skinGoal.value = 'none';
   elements.skinGoalGroup.hidden = true;
   state.recordedView = null;
   document.querySelectorAll('input[name="self-view"]').forEach(input => { input.disabled = false; });
@@ -146,7 +146,8 @@ async function loadUpload(file) {
 
 function renderSkinComparison() {
   if (!state.skinRgb) return;
-  const compared = comparePhotoSwatch(state.skinRgb, state.items);
+  const nearFace = state.items.filter(item => ['upper', 'outerwear', 'dress'].includes(GARMENTS[item.kind].slot));
+  const compared = comparePhotoSwatch(state.skinRgb, nearFace);
   const swatch = document.createElement('i');
   swatch.className = 'sampled-skin-swatch';
   swatch.style.background = `rgb(${state.skinRgb.join(',')})`;
@@ -156,7 +157,7 @@ function renderSkinComparison() {
     ? `${describePhotoPatch(state.skinRgb)} ${compared.map(entry => {
       const piece = state.items.find(item => item.id === entry.id);
       return `${entry.label} ${GARMENTS[piece.kind].label.toLowerCase()}: ${entry.contrast}`;
-    }).join('; ')} light/dark contrast. Only upper-body, outerwear and dress colours contribute to the optional 8% near-face score.`
+    }).join('; ')} light/dark contrast. ${state.contrastGoal === 'none' ? 'No contrast goal is selected, so this comparison does not affect the score.' : 'Upper-body, outerwear and dress colours contribute to the optional 8% near-face score.'}`
     : `${describePhotoPatch(state.skinRgb)} Add garment colours to compare light/dark contrast.`;
   elements.skinOutput.replaceChildren(swatch, copy);
   elements.skinOutput.hidden = false;
@@ -423,7 +424,7 @@ elements.photo.addEventListener('click', event => {
       state.skinPicking = false;
       elements.skinGoalGroup.hidden = false;
       renderSkinComparison();
-      photoFeedback('Photo colour sampled. Review its description and your contrast goal below; the score will update if you have already revealed it.');
+      photoFeedback('Photo colour sampled. Review its description below. Choose a contrast goal if you want this comparison to affect the score.');
     } else {
       const piece = state.items.find(entry => entry.id === state.samplingId);
       if (piece) piece.color = sampled.colour;

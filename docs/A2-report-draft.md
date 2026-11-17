@@ -3,11 +3,11 @@
 **Assignment:** Assignment 2 — Project Report
 **Module:** Intelligent Interactive Systems
 **Student:** Sasvattram Seetharaman (2689646)
-**Total report word count:** approximately 1,174 (abstract 157 + main report 1,017)
+**Total report word count:** approximately 1,173 (abstract 157 + main report 1,016)
 **Abstract word count:** 157
 **Repository:** Local Git repository; not published
 **README:** README.md in the project folder
-**Project version:** Local tag a2-local-final
+**Project version:** Local tag a2-contrast-options
 
 ## Abstract
 
@@ -33,7 +33,7 @@ The score appears only after a photo, two garments and colours for every item. O
 
 The engine weights occasion fit 55%, garment pairing 20%, colour 15% and stated preference 10%. This revises an initial weighted average that gave a printed T-shirt, shorts and flip-flops 67 for an interview: coordinated colours masked an obvious conventional-dress mismatch. Interview conflicts now cap the total at 65, 45 or 30 as one, two or three remain. The same outfit later scored 74 for dinner, so I specified a smart-casual assumption and added dinner caps of 75, 60 or 50. Casual flip-flops and dress sandals are separate inputs. These thresholds are design hypotheses, not validated fashion measures. A hospitality-sector interview study found professional attire more consequential than clothing colour (Ruetzler et al., 2012), while event-specific fashion research separates event suitability from colour-based style (Becattini et al., 2023). Neither establishes my numeric caps. Candidate swaps are re-scored and shown only when a single change improves the estimate by four points; a strong casual outfit may receive no suggestion.
 
-The pixel sampler averages a user-selected patch; the editable field corrects mistakes caused by lighting. The skin picker scrolls to the photo, describes the sampled patch and compares its light/dark contrast with upper-body and outerwear colours. The user chooses soft, balanced or bold contrast. With a sample, palette balance becomes 7% and near-face contrast 8%; the latter can change the score but cannot override an occasion cap. Perrett and Sprengelmeyer (2021) studied simulated clothes beside twelve young White women’s faces. Their result does not justify universal skin-tone palettes; my contrast thresholds are unvalidated preference rules. Gender prediction is unnecessary. Gray et al. (2014) favoured moderate colour coordination in their stimuli; Pantone’s 2026 autumn/winter report shows both neutrals and vivid shades. Colour and season therefore remain secondary to occasion.
+The pixel sampler averages a user-selected patch; the editable field corrects mistakes caused by lighting. The skin picker scrolls to the photo and describes the patch. “No contrast goal” leaves the score unchanged. If the user chooses soft, balanced or bold contrast, the app compares the patch with upper-body and outerwear colours: palette balance becomes 7% and near-face contrast 8%. The latter cannot override an occasion cap. Perrett and Sprengelmeyer (2021) studied simulated clothes beside twelve young White women’s faces. Their result does not justify universal skin-tone palettes; my contrast thresholds are unvalidated preference rules. Gender prediction is unnecessary. Gray et al. (2014) favoured moderate colour coordination in their stimuli; Pantone’s 2026 autumn/winter report shows both neutrals and vivid shades. Colour and season therefore remain secondary to occasion.
 
 Figure 1 separates evidence and control. The photo stays in browser memory; model files download on demand, then inference runs locally. CLIP guesses and pixel colours enter editable facts after user review. Occasion, season, style and optional skin contrast enter the rules, which calculate reasons, caps and swaps. Undo restores the prior state without reprocessing the image. The own-view answer is shown beside the score, never fed into it. Following Week 4’s context-engineering discussion, the app keeps current-task state rather than a persistent style profile. An internet connection is needed for the first model download, but manual entry and scoring do not need it.
 

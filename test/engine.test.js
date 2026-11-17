@@ -153,6 +153,20 @@ test('a selected skin-area colour and contrast goal affect a suitable outfit sco
   assert.notEqual(balanced.total, soft.total);
 });
 
+test('no contrast goal keeps a sampled photo patch out of scoring', () => {
+  const items = [
+    { id: '1', kind: 'shirt', color: 'white', pattern: 'solid' },
+    { id: '2', kind: 'trousers', color: 'navy', pattern: 'solid' },
+    { id: '3', kind: 'loafers', color: 'black', pattern: 'solid' }
+  ];
+  const base = evaluateOutfit({ occasion: 'interview', items });
+  const sampled = evaluateOutfit({ occasion: 'interview', items, skinRgb: [180, 130, 105], contrastGoal: 'none' });
+  assert.equal(sampled.total, base.total);
+  assert.equal(sampled.dimensions.length, 4);
+  assert.equal(sampled.dimensions.find(entry => entry.key === 'colour').weight, 15);
+  assert.equal(sampled.dimensions.find(entry => entry.key === 'skinContrast'), undefined);
+});
+
 test('skin-colour preference cannot lift a conventional interview cap', () => {
   const items = [
     { id: '1', kind: 'tshirt', color: 'cream', pattern: 'print' },

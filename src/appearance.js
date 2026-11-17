@@ -1,5 +1,6 @@
 /** Photo-colour comparisons, not measurements of identity or attractiveness. */
 export const CONTRAST_GOALS = {
+  none: 'No contrast goal',
   soft: 'Soft contrast',
   balanced: 'Balanced contrast',
   bold: 'Bold contrast'
@@ -44,8 +45,8 @@ export function comparePatchWithItems(rgb, items, colors) {
 }
 
 /** User-selected contrast goal determines the score; no skin-category palette is assumed. */
-export function assessNearFaceContrast(rgb, items, colors, garments, goal = 'balanced') {
-  if (!CONTRAST_GOALS[goal]) throw new Error('Choose a supported contrast goal.');
+export function assessNearFaceContrast(rgb, items, colors, garments, goal = 'none') {
+  if (!CONTRAST_GOALS[goal] || goal === 'none') throw new Error('Choose a supported contrast goal.');
   const nearFace = items.filter(item => ['upper', 'outerwear', 'dress'].includes(garments[item.kind]?.slot));
   if (!nearFace.length) return null;
   const comparisons = comparePatchWithItems(rgb, nearFace, colors);
