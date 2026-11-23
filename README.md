@@ -1,20 +1,20 @@
 # Outfit, considered.
 
-**README prose word count:** approximately 1,000. Commands, headings and link destinations are excluded.
+**README prose word count:** 1,267. Commands, headings and link destinations are excluded.
 
 A no-cost, local prototype for exploring how an outfit fits a chosen occasion and personal style preference. It scores the *selected clothing details*, never the person.
 
 ## Status
 
-**Implemented:** photo upload and local preview; optional browser-run garment suggestions for three image regions; editable garment, colour and pattern labels; tap-to-sample colour; optional skin-area sampling with a user-chosen contrast goal; pre-score judgement; contextual score with reasons; optional time-of-year palette cue; one-item swap preview and undo. The score changes when occasion, confirmed garments or the optional contrast goal change.
+**Implemented:** photo upload and local preview; optional browser-run garment, colour and pattern suggestions for three image regions; editable garment, colour and pattern labels; tap-to-sample colour; optional skin-area sampling with a user-chosen contrast goal; pre-score judgement; contextual score with reasons; optional time-of-year palette cue; one-item swap preview and undo. The score changes when occasion, confirmed garments or the optional contrast goal change.
 
 **Sample/simulated:** four bundled photos are AI-generated; their labels are prefilled demonstration data. Their scores and swaps use the real rule engine. Prefilled labels are not vision-model results.
 
-**Planned, not built:** whole-outfit detection, wardrobe history, shopping links and a user evaluation. The optional model guesses one item for each of three fixed body regions; it can miss layers or make mistakes. Users confirm, correct and add pieces. Gender identification and skin-tone categorisation are deliberately outside scope.
+**Planned, not built:** whole-outfit detection, wardrobe history, shopping links and a user evaluation. The optional model guesses one item and its colour and pattern for each of three fixed body regions; it can miss layers or confuse garments with skin or background. Users confirm, correct and add pieces. Gender identification and skin-tone categorisation are deliberately outside scope.
 
 ## Technology and AI behaviour
 
-Plain HTML, CSS and JavaScript run on a dependency-free Node.js server. Optional [Transformers.js](https://github.com/huggingface/transformers.js) loads [Xenova CLIP](https://huggingface.co/Xenova/clip-vit-base-patch32) and compares image crops with garment descriptions in the browser. Its first use downloads about 160 MB; manual entry and scoring work offline. Canvas samples pixels. The local engine weights occasion (55%), pairing (20%), colour (15%) and style direction (10%). A selected skin-area patch reallocates 8% of colour only when the user chooses a near-face contrast goal; “No contrast goal” leaves scoring unchanged. Conventional-interview and smart-casual dinner mismatches can cap the total. Season adds at most four points to the colour component. These thresholds are design choices, not validated fashion measures. Photos stay in the browser; no paid API, account or key is required.
+Plain HTML, CSS and JavaScript run on a dependency-free Node.js server. Optional [Transformers.js](https://github.com/huggingface/transformers.js) loads [Xenova CLIP](https://huggingface.co/Xenova/clip-vit-base-patch32) and compares image crops with garment, colour and pattern descriptions in the browser. Its first use downloads about 160 MB; manual entry and scoring work offline. Canvas samples pixels. The local engine weights occasion (55%), pairing (20%), colour (15%) and style direction (10%). A selected skin-area patch reallocates 8% of colour only when the user chooses a near-face contrast goal; “No contrast goal” leaves scoring unchanged. A separate, inspectable [semantic rule set](src/semantic.js) interprets occasion conflicts and garment relationships, and checks whether entered pieces describe a complete outfit. Missing main pieces, missing footwear or duplicate footwear/lower pieces limit confidence in the total; the interface explains the check and asks for correction before suggesting a swap. Dress layering is flagged for confirmation without an automatic penalty. Conventional-interview and smart-casual dinner mismatches can also cap the total. Season adds at most four points to the colour component. These thresholds are design choices, not validated fashion measures. Photos stay in the browser; no paid API, account or key is required.
 
 ## Run and inspect
 
@@ -24,7 +24,7 @@ Requires Node.js 20 or newer. From this folder:
 npm start
 ```
 
-Open `http://127.0.0.1:4173`. Use a sample or upload, drop or paste a JPEG, PNG or WebP up to 5 MB. Optional **Suggest garments from photo** gives guesses to review, correct or reject. Add missed pieces and confirm colours and patterns before scoring. **Pick colour from photo** samples a garment or skin-area patch; the latter offers an optional contrast goal. **Own view** records a pre-score judgement but does not affect the score. Run the checks with:
+Open `http://127.0.0.1:4173`. Use a sample or upload, drop or paste a JPEG, PNG or WebP up to 5 MB. Optional **Suggest details from photo** preselects garment, colour and pattern guesses in a review panel; correct or reject them before adding. Add missed pieces and check every label against the photo before scoring. **Pick colour from photo** samples a garment or skin-area patch; use arrow keys and Enter to select from the photo without a pointer. The skin-area option offers an optional contrast goal. **Own view** records a pre-score judgement but does not affect the score. Run the checks with:
 
 ```sh
 npm test
@@ -46,6 +46,9 @@ See the [project report](output/pdf/A2_Project_Report.pdf), [architecture diagra
 | Dinner revision (`7210462`) | A 74 dinner result prompted a stated smart-casual assumption, caps and separate flip-flop/dress-sandal labels. | Printed T-shirt, shorts and flip-flops now cap at 50; dress sandals do not trigger that conflict. |
 | Submission walkthrough | Generated a distinct synthetic dinner image so the path can be replayed without publishing the user's photograph. | Browser checked 94 with no swap, dinner 50 → 60 → 50 with Undo, and correction of the model's missed blazer. |
 | Contrast control revision | Added “No contrast goal” so sampling alone does not imply a styling preference; explained all four options next to the control. | An automated check confirms the sample does not change the score until a goal is chosen. Sixteen checks pass. |
+| Interface review | Kept the editorial look, added visual sample choices and a clear score-readiness message, and enabled keyboard photo sampling and reduced-motion scrolling. | Desktop and phone walkthroughs showed the selected sample, dinner score of 50, no horizontal overflow and no console errors. |
+| Semantic rule revision | Collected occasion and pairing relationships in one inspectable module and added outfit-structure checks so partial or duplicate entries cannot appear fully confident. Removed an automatic dress-layering penalty because that combination can be intentional. | Nineteen automated checks pass, including partial interview attire, duplicate footwear and dress layering; the complete sample scores remain unchanged. |
+| Vision detail revision | Extended the optional CLIP pass to suggest colour and pattern alongside garment type, then presented all three as editable choices before they enter the score. | A browser walkthrough with the synthetic interview photo transferred three editable triplets; several colour guesses differed from the known labels. Recognition accuracy has not been measured. |
 
 ## AI assistance and authorship
 
@@ -53,4 +56,4 @@ The user chose the outfit-checking concept, no-paid-service constraint and reque
 
 ## Scope of the evidence
 
-The tests show that the code follows its stated rules; they do not establish fashion expertise or user benefit. One AI-generated photo was used to smoke-test vision suggestions, not measure accuracy. The model's similarity rankings are not calibrated probabilities. Crops assume a roughly centred, full-body photo. The user must identify a real skin area; the app does not verify it. Photo lighting can change the patch description and contrast band. The optional 8% near-face score applies only with a chosen goal; it is not a validated rule about skin colour or attractiveness.
+The tests show that the code follows its stated rules; they do not establish fashion expertise, scoring accuracy or user benefit. The semantic checks operate on confirmed garment labels, not direct understanding of the image. Their numeric limits are prototype choices; users may intentionally layer pieces or omit garments from a photo. One AI-generated photo was used to smoke-test vision suggestions, not measure accuracy. The model's similarity rankings are not calibrated probabilities. Crops assume a roughly centred, full-body photo. The user must identify a real skin area; the app does not verify it. Photo lighting can change the patch description and contrast band. The optional 8% near-face score applies only with a chosen goal; it is not a validated rule about skin colour or attractiveness.

@@ -8,8 +8,9 @@ const elements = {
   photoArea: $('photo-area'), photo: $('outfit-image'), photoBadge: $('photo-badge'),
   photoMessage: $('photo-message'), photoInput: $('photo-input'), sampleChoices: document.querySelector('.sample-choices'),
   sampleMarker: $('sample-marker'), itemList: $('item-list'), itemCount: $('item-count'),
-  addItem: $('add-item'), scoreButton: $('score-button'), inputError: $('input-error'),
-  resultEmpty: $('result-empty'), resultContent: $('result-content'), scoreValue: $('score-value'),
+  addItem: $('add-item'), scoreButton: $('score-button'), scoreReadiness: $('score-readiness'), inputError: $('input-error'),
+  resultEmpty: $('result-empty'), resultEmptyTitle: $('result-title'), resultEmptyCopy: $('result-empty-copy'),
+  resultContent: $('result-content'), scoreValue: $('score-value'),
   scoreContext: $('score-context'), dimensions: $('dimensions'), notes: $('score-notes'),
   suggestion: $('suggestion-content'), preference: $('preference'), season: $('season'), selfViewResult: $('self-view-result'),
   suggestButton: $('suggest-button'), visionStatus: $('vision-status'), visionPanel: $('vision-panel'),
@@ -20,7 +21,8 @@ const elements = {
 const state = {
   occasion: 'casual', preference: 'none', season: 'none', items: [], photoUrl: null, source: null,
   scored: false, samplingId: null, skinPicking: false, skinRgb: null, contrastGoal: 'none',
-  previewOriginal: null, selfView: 'uncertain', recordedView: null, nextId: 1
+  previewOriginal: null, selfView: 'uncertain', recordedView: null, nextId: 1,
+  keyboardPoint: { x: 0.5, y: 0.5 }
 };
 
 const samples = {
@@ -38,15 +40,59 @@ function options(dictionary, selected, label = value => value.label) {
   return Object.entries(dictionary).map(([key, value]) => `<option value="${key}"${key === selected ? ' selected' : ''}>${label(value)}</option>`).join('');
 }
 
+function markActiveSample(sampleId = null) {
+  elements.sampleChoices.querySelectorAll('button[data-sample]').forEach(button => {
+    if (button.dataset.sample === sampleId) button.setAttribute('aria-current', 'true');
+    else button.removeAttribute('aria-current');
+  });
+}
+
+function scrollTo(element, block = 'center') {
+  element.scrollIntoView({ behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block });
+}
+
+function imageContentRect() {
+  const bounds = elements.photo.getBoundingClientRect();
+  if (!elements.photo.naturalWidth || !elements.photo.naturalHeight) return bounds;
+  const width = Math.min(bounds.width, bounds.height * elements.photo.naturalWidth / elements.photo.naturalHeight);
+  const height = Math.min(bounds.height, bounds.width * elements.photo.naturalHeight / elements.photo.naturalWidth);
+  return { left: bounds.left + (bounds.width - width) / 2, top: bounds.top + (bounds.height - height) / 2, width, height };
+}
+
+function showSampleMarker(clientX, clientY) {
+  const area = elements.photoArea.getBoundingClientRect();
+  elements.sampleMarker.style.left = `${(clientX - area.left) / area.width * 100}%`;
+  elements.sampleMarker.style.top = `${(clientY - area.top) / area.height * 100}%`;
+  elements.sampleMarker.hidden = false;
+}
+
+function setPhotoSampling(enabled, kind = 'garment') {
+  elements.photoArea.classList.toggle('sampling', enabled);
+  if (!enabled) {
+    elements.photo.removeAttribute('tabindex');
+    elements.photo.removeAttribute('role');
+    elements.photo.removeAttribute('aria-label');
+    return;
+  }
+  state.keyboardPoint = { x: 0.5, y: kind === 'skin' ? 0.24 : 0.5 };
+  elements.photo.tabIndex = 0;
+  elements.photo.setAttribute('role', 'button');
+  elements.photo.setAttribute('aria-label', `${elements.photo.alt} Select a ${kind === 'skin' ? 'skin-area' : 'garment'} colour. Use arrow keys to move the marker, Enter to select, or Escape to cancel.`);
+  const rect = imageContentRect();
+  showSampleMarker(rect.left + rect.width * state.keyboardPoint.x, rect.top + rect.height * state.keyboardPoint.y);
+}
+
 function setPhoto(src, source, alt) {
   if (state.photoUrl?.startsWith('blob:')) URL.revokeObjectURL(state.photoUrl);
   state.photoUrl = src;
   state.source = source;
+  markActiveSample();
   elements.photo.src = src;
   elements.photo.alt = alt;
   elements.photo.hidden = false;
   $('empty-photo').hidden = true;
   elements.photoArea.classList.remove('empty', 'sampling');
+  setPhotoSampling(false);
   elements.photoBadge.hidden = false;
   elements.photoBadge.textContent = source === 'sample' ? 'Sample image · AI generated' : 'Your photo · local only';
   elements.sampleMarker.hidden = true;
@@ -63,7 +109,7 @@ function setPhoto(src, source, alt) {
   elements.skinButton.disabled = false;
   elements.visionPanel.hidden = true;
   elements.visionList.replaceChildren();
-  elements.visionStatus.textContent = 'Optional. First use downloads about 160 MB of free model files; your photo stays in this browser. Results are guesses, not verified labels.';
+  elements.visionStatus.textContent = 'Optional. First use downloads about 160 MB of free model files; your photo stays in this browser. Garment, colour and pattern are editable guesses.';
   state.scored = false;
   state.previewOriginal = null;
   elements.resultEmpty.hidden = false;
@@ -90,6 +136,7 @@ function loadSample(sampleId) {
   document.querySelector('[name="self-view"][value="uncertain"]').checked = true;
   elements.preference.value = sample.preference;
   elements.season.value = sample.season;
+  markActiveSample(sampleId);
   photoFeedback('AI-generated sample image and its garment labels are provided for demonstration. You can edit every label or try the vision model separately.');
   renderItems();
 }
@@ -174,11 +221,20 @@ function renderVisionSuggestions(suggestions) {
     check.setAttribute('aria-label', `Use suggestion for ${suggestion.zone}`);
     const label = document.createElement('span');
     label.textContent = suggestion.zone;
-    const select = document.createElement('select');
-    select.setAttribute('aria-label', `Suggested garment for ${suggestion.zone}`);
-    select.innerHTML = options(GARMENTS, suggestion.kind);
+    const garment = document.createElement('select');
+    garment.dataset.field = 'kind';
+    garment.setAttribute('aria-label', `Suggested garment for ${suggestion.zone}`);
+    garment.innerHTML = options(GARMENTS, suggestion.kind);
+    const colour = document.createElement('select');
+    colour.dataset.field = 'color';
+    colour.setAttribute('aria-label', `Suggested colour for ${suggestion.zone}`);
+    colour.innerHTML = options(COLORS, suggestion.color);
+    const pattern = document.createElement('select');
+    pattern.dataset.field = 'pattern';
+    pattern.setAttribute('aria-label', `Suggested pattern for ${suggestion.zone}`);
+    pattern.innerHTML = options(PATTERNS, suggestion.pattern, value => value);
     row.dataset.zone = String(index);
-    row.append(check, label, select);
+    row.append(check, label, garment, colour, pattern);
     elements.visionList.append(row);
   }
   elements.visionPanel.hidden = suggestions.length === 0;
@@ -194,7 +250,7 @@ async function runVision() {
     const suggestions = await suggestGarments(elements.photo, message => { if (active && state.photoUrl === currentPhoto) elements.visionStatus.textContent = message; });
     if (state.photoUrl !== currentPhoto) return;
     renderVisionSuggestions(suggestions);
-    elements.visionStatus.textContent = 'Suggestions are ready. The model compared image regions with garment names; its rankings are not calibrated confidence scores. Review before adding.';
+    elements.visionStatus.textContent = 'Garment, colour and pattern guesses are ready. Each comes from a fixed image region, which may include skin or background. Correct or untick anything wrong before adding.';
   } catch (error) {
     active = false;
     if (state.photoUrl !== currentPhoto) return;
@@ -211,15 +267,37 @@ function renderItems() {
     <div class="item-row" data-id="${piece.id}">
       <div class="item-top"><span class="item-title">PIECE ${String(index + 1).padStart(2, '0')}</span><button type="button" class="remove-item" data-action="remove" aria-label="Remove piece ${index + 1}">Remove</button></div>
       <div class="item-fields">
-        <label><span>Garment</span><select data-field="kind" aria-label="Garment for piece ${index + 1}">${options(GARMENTS, piece.kind)}</select></label>
-        <label><span>Colour</span><div class="color-field"><i class="swatch" style="background:${COLORS[piece.color]?.hex || '#fff'}" aria-hidden="true"></i><select data-field="color" aria-label="Colour for piece ${index + 1}"><option value=""${piece.color ? '' : ' selected'}>Choose colour</option>${options(COLORS, piece.color)}</select></div></label>
-        <label><span>Pattern</span><select data-field="pattern" aria-label="Pattern for piece ${index + 1}">${options(PATTERNS, piece.pattern, value => value)}</select></label>
+        <label><span>Garment</span><select data-field="kind" name="piece-${index + 1}-garment" aria-label="Garment for piece ${index + 1}">${options(GARMENTS, piece.kind)}</select></label>
+        <label><span>Colour</span><div class="color-field"><i class="swatch" style="background:${COLORS[piece.color]?.hex || '#fff'}" aria-hidden="true"></i><select data-field="color" name="piece-${index + 1}-colour" aria-label="Colour for piece ${index + 1}"><option value=""${piece.color ? '' : ' selected'}>Choose colour</option>${options(COLORS, piece.color)}</select></div></label>
+        <label><span>Pattern</span><select data-field="pattern" name="piece-${index + 1}-pattern" aria-label="Pattern for piece ${index + 1}">${options(PATTERNS, piece.pattern, value => value)}</select></label>
       </div>
       <button type="button" class="sample-button ${state.samplingId === piece.id ? 'active' : ''}" data-action="sample" aria-pressed="${state.samplingId === piece.id}">${state.samplingId === piece.id ? 'Tap the garment in the photo…' : 'Pick colour from photo'}</button>
     </div>`).join('');
   elements.itemCount.textContent = `${state.items.length} ${state.items.length === 1 ? 'piece' : 'pieces'} added`;
   const ready = !!state.photoUrl && state.items.length >= 2 && state.items.every(piece => COLORS[piece.color]);
   elements.scoreButton.disabled = !ready;
+  const missingColour = state.items.findIndex(piece => !COLORS[piece.color]);
+  elements.scoreReadiness.textContent = !state.photoUrl
+    ? 'Add a photo or choose a sample to begin.'
+    : state.items.length < 2
+      ? `Add ${2 - state.items.length} more ${state.items.length === 1 ? 'piece' : 'pieces'} to score this outfit.`
+      : missingColour >= 0
+        ? `Choose a colour for piece ${missingColour + 1} to see the score.`
+        : 'Ready to score. You can still correct any piece.';
+  elements.scoreReadiness.dataset.ready = String(ready);
+  if (!state.photoUrl) {
+    elements.resultEmptyTitle.textContent = 'A little more context, then a clearer answer.';
+    elements.resultEmptyCopy.textContent = 'Add a photo and confirm at least two pieces and their colours. We’ll show how occasion, garment pairing, colour and your preference each affect the estimate.';
+  } else if (state.items.length < 2) {
+    elements.resultEmptyTitle.textContent = 'Start with the pieces.';
+    elements.resultEmptyCopy.textContent = 'The photo is ready. Add at least two garments, then choose a colour for each.';
+  } else if (missingColour >= 0) {
+    elements.resultEmptyTitle.textContent = 'One detail remains.';
+    elements.resultEmptyCopy.textContent = `Choose a colour for piece ${missingColour + 1} before revealing the score.`;
+  } else {
+    elements.resultEmptyTitle.textContent = 'Ready when you are.';
+    elements.resultEmptyCopy.textContent = 'Review the editable garments, then choose “See my outfit score” to reveal the breakdown and one suggested change.';
+  }
   elements.inputError.hidden = true;
   renderSkinComparison();
   if (state.scored && ready) renderResult();
@@ -278,7 +356,7 @@ function renderResult() {
       state.items = state.previewOriginal;
       state.previewOriginal = null;
       renderItems();
-      elements.scoreValue.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      scrollTo(elements.scoreValue);
     });
     elements.suggestion.append(message, detail, undo);
     return;
@@ -287,7 +365,9 @@ function renderResult() {
   if (!suggestion) {
     const message = document.createElement('p');
     message.className = 'no-suggestion';
-    message.textContent = 'The selected rules do not find a worthwhile single-item change. Keep the outfit if it feels right to you.';
+    message.textContent = result.semanticChecks.some(check => check.cap !== null)
+      ? 'Confirm the missing or duplicate outfit pieces before exploring a style swap.'
+      : 'The selected rules do not find a worthwhile single-item change. Keep the outfit if it feels right to you.';
     elements.suggestion.append(message);
     return;
   }
@@ -308,7 +388,7 @@ function renderResult() {
     state.previewOriginal = state.items.map(piece => ({ ...piece }));
     state.items = applyChange(state.items, suggestion);
     renderItems();
-    elements.scoreValue.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    scrollTo(elements.scoreValue);
   });
   elements.suggestion.append(swap, reason, impact, tryButton);
 }
@@ -321,16 +401,20 @@ elements.suggestButton.addEventListener('click', runVision);
 elements.applyVision.addEventListener('click', () => {
   const selected = [...elements.visionList.querySelectorAll('.vision-row')]
     .filter(row => row.querySelector('input').checked)
-    .map(row => row.querySelector('select').value)
-    .filter((kind, index, kinds) => !state.items.some(piece => piece.kind === kind) && kinds.indexOf(kind) === index);
+    .map(row => ({
+      kind: row.querySelector('[data-field="kind"]').value,
+      color: row.querySelector('[data-field="color"]').value,
+      pattern: row.querySelector('[data-field="pattern"]').value
+    }))
+    .filter((entry, index, entries) => !state.items.some(piece => piece.kind === entry.kind) && entries.findIndex(other => other.kind === entry.kind) === index);
   if (state.items.length + selected.length > 8) {
     elements.visionStatus.textContent = 'Remove some pieces before adding these suggestions; the prototype supports eight pieces.';
     return;
   }
-  for (const kind of selected) state.items.push(item(kind));
+  for (const entry of selected) state.items.push(item(entry.kind, entry.color, entry.pattern));
   elements.visionPanel.hidden = true;
   elements.visionStatus.textContent = selected.length
-    ? 'Suggested garment types added. Choose a colour for each new piece and check all details before scoring.'
+    ? 'Suggested garment, colour and pattern labels added. Check every detail against the photo before scoring.'
     : 'No new pieces added; any matching garment types are already in the list.';
   state.previewOriginal = null;
   renderItems();
@@ -339,10 +423,10 @@ elements.skinButton.addEventListener('click', () => {
   if (!state.photoUrl) return;
   state.skinPicking = !state.skinPicking;
   state.samplingId = null;
-  elements.photoArea.classList.toggle('sampling', state.skinPicking);
-  photoFeedback(state.skinPicking ? 'Tap a visible skin area in the photo. You will return to the comparison below.' : 'Skin colour picking cancelled.');
+  setPhotoSampling(state.skinPicking, 'skin');
+  photoFeedback(state.skinPicking ? 'Tap a visible skin area, or use arrow keys on the photo and press Enter. You will return to the comparison below.' : 'Skin colour picking cancelled.');
   renderItems();
-  if (state.skinPicking) elements.photoArea.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  if (state.skinPicking) { scrollTo(elements.photoArea); elements.photo.focus({ preventScroll: true }); }
 });
 elements.skinGoal.addEventListener('change', event => {
   state.contrastGoal = event.target.value;
@@ -377,17 +461,21 @@ elements.addItem.addEventListener('click', () => {
   state.items.push(item());
   state.previewOriginal = null;
   renderItems();
+  elements.itemList.lastElementChild?.querySelector('[data-field="kind"]')?.focus();
 });
 elements.itemList.addEventListener('click', event => {
   const button = event.target.closest('button[data-action]');
   if (!button) return;
   const id = button.closest('.item-row').dataset.id;
   if (button.dataset.action === 'remove') {
+    const removedIndex = state.items.findIndex(piece => piece.id === id);
     state.items = state.items.filter(piece => piece.id !== id);
     state.previewOriginal = null;
     if (state.samplingId === id) state.samplingId = null;
-    elements.photoArea.classList.toggle('sampling', !!state.samplingId);
+    setPhotoSampling(!!state.samplingId);
     renderItems();
+    const nextRow = elements.itemList.children[Math.min(removedIndex, state.items.length - 1)];
+    (nextRow?.querySelector('[data-action="remove"]') || elements.addItem).focus();
   } else if (button.dataset.action === 'sample') {
     if (!state.photoUrl) {
       elements.inputError.textContent = 'Add a photo before sampling its colours.';
@@ -396,9 +484,10 @@ elements.itemList.addEventListener('click', event => {
     }
     state.skinPicking = false;
     state.samplingId = state.samplingId === id ? null : id;
-    elements.photoArea.classList.toggle('sampling', !!state.samplingId);
-    elements.photoMessage.textContent = state.samplingId ? 'Tap the centre of the selected garment in the photo. Then check the colour name below.' : 'Colour picking cancelled.';
+    setPhotoSampling(!!state.samplingId);
+    photoFeedback(state.samplingId ? 'Tap the garment in the photo, or use arrow keys and Enter. Then check the colour name below.' : 'Colour picking cancelled.');
     renderItems();
+    if (state.samplingId) { scrollTo(elements.photoArea); elements.photo.focus({ preventScroll: true }); }
   }
 });
 elements.itemList.addEventListener('change', event => {
@@ -410,15 +499,13 @@ elements.itemList.addEventListener('change', event => {
   state.previewOriginal = null;
   renderItems();
 });
-elements.photo.addEventListener('click', event => {
+function applyPhotoSample(clientX, clientY, fromKeyboard = false) {
   if (!state.samplingId && !state.skinPicking) return;
   const wasSkinPicking = state.skinPicking;
+  const sampledId = state.samplingId;
   try {
-    const sampled = sampleImageColour(elements.photo, event.clientX, event.clientY);
-    const area = elements.photoArea.getBoundingClientRect();
-    elements.sampleMarker.style.left = `${(event.clientX - area.left) / area.width * 100}%`;
-    elements.sampleMarker.style.top = `${(event.clientY - area.top) / area.height * 100}%`;
-    elements.sampleMarker.hidden = false;
+    const sampled = sampleImageColour(elements.photo, clientX, clientY);
+    showSampleMarker(clientX, clientY);
     if (state.skinPicking) {
       state.skinRgb = sampled.rgb;
       state.skinPicking = false;
@@ -432,12 +519,46 @@ elements.photo.addEventListener('click', event => {
       state.previewOriginal = null;
       photoFeedback(`Suggested colour: ${COLORS[sampled.colour].label}. Check or change it in the garment row.`);
     }
-    elements.photoArea.classList.remove('sampling');
+    setPhotoSampling(false);
     renderItems();
-    if (wasSkinPicking) elements.skinGoalGroup.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    if (wasSkinPicking) scrollTo(elements.skinGoalGroup);
+    if (fromKeyboard) {
+      const target = wasSkinPicking ? elements.skinGoal : [...elements.itemList.querySelectorAll('.item-row')].find(row => row.dataset.id === sampledId)?.querySelector('[data-field="color"]');
+      target?.focus({ preventScroll: true });
+    }
   } catch (error) {
     photoFeedback(error.message, true);
   }
+}
+
+elements.photo.addEventListener('click', event => applyPhotoSample(event.clientX, event.clientY));
+elements.photo.addEventListener('keydown', event => {
+  if (!state.samplingId && !state.skinPicking) return;
+  if (event.key === 'Escape') {
+    event.preventDefault();
+    const sampledId = state.samplingId;
+    state.skinPicking = false;
+    state.samplingId = null;
+    setPhotoSampling(false);
+    photoFeedback('Colour picking cancelled.');
+    renderItems();
+    (sampledId ? [...elements.itemList.querySelectorAll('.item-row')].find(row => row.dataset.id === sampledId)?.querySelector('[data-action="sample"]') : elements.skinButton)?.focus();
+    return;
+  }
+  if (event.key === 'Enter' || event.key === ' ') {
+    event.preventDefault();
+    const rect = imageContentRect();
+    applyPhotoSample(rect.left + rect.width * state.keyboardPoint.x, rect.top + rect.height * state.keyboardPoint.y, true);
+    return;
+  }
+  const direction = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, -1], ArrowDown: [0, 1] }[event.key];
+  if (!direction) return;
+  event.preventDefault();
+  const step = event.shiftKey ? 0.1 : 0.025;
+  state.keyboardPoint.x = Math.max(0.02, Math.min(0.98, state.keyboardPoint.x + direction[0] * step));
+  state.keyboardPoint.y = Math.max(0.02, Math.min(0.98, state.keyboardPoint.y + direction[1] * step));
+  const rect = imageContentRect();
+  showSampleMarker(rect.left + rect.width * state.keyboardPoint.x, rect.top + rect.height * state.keyboardPoint.y);
 });
 document.querySelectorAll('input[name="occasion"]').forEach(input => input.addEventListener('change', event => {
   state.occasion = event.target.value;
@@ -466,5 +587,5 @@ elements.scoreButton.addEventListener('click', () => {
   }
   state.scored = true;
   renderResult();
-  if (window.matchMedia('(max-width: 1020px)').matches) elements.resultContent.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  if (window.matchMedia('(max-width: 1020px)').matches) scrollTo(elements.resultContent, 'start');
 });

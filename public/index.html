@@ -6,9 +6,13 @@
   <meta name="theme-color" content="#f3efe7">
   <meta name="description" content="Explore how an outfit fits your occasion and preferences with a transparent, correctable score.">
   <title>Outfit, considered — a contextual outfit checker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
+  <a class="skip-link" href="#main-content">Skip to outfit checker</a>
   <div class="site-shell">
     <header class="topbar">
       <a class="brand" href="/" aria-label="Outfit, considered — home"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span><span>Outfit, considered<span class="brand-stop">.</span></span></a>
@@ -16,7 +20,7 @@
       <span class="topbar-status"><span class="status-dot" aria-hidden="true"></span>Runs locally · no account</span>
     </header>
 
-    <main>
+    <main id="main-content" tabindex="-1">
       <section class="intro" aria-labelledby="page-title">
         <div class="intro-main">
           <h1 id="page-title">See your outfit<br><em>in context.</em></h1>
@@ -36,41 +40,42 @@
           </div></fieldset>
           <p class="helper-text">Dinner out assumes smart casual; interview assumes a conventional dress code. Venue and workplace norms vary.</p>
           <label class="field-label" for="season">Time of year <span class="optional-label">Optional</span></label>
-          <select id="season" class="wide-select"><option value="none">No season selected</option><option value="spring">Spring</option><option value="summer">Summer</option><option value="autumn">Autumn</option><option value="winter">Winter</option></select>
+          <select id="season" name="season" class="wide-select"><option value="none">No season selected</option><option value="spring">Spring</option><option value="summer">Summer</option><option value="autumn">Autumn</option><option value="winter">Winter</option></select>
           <p class="helper-text">Season adds at most four points to the colour component for a broad palette cue. It does not judge warmth or weather suitability.</p>
           <label class="field-label" for="preference">Style direction <span class="optional-label">Optional</span></label>
-          <select id="preference" class="wide-select"><option value="none">No colour or style direction</option><option value="minimal">Understated</option><option value="expressive">Bright or expressive</option><option value="earth">Earth tones</option><option value="cool">Cool tones</option></select>
+          <select id="preference" name="style-direction" class="wide-select"><option value="none">No colour or style direction</option><option value="minimal">Understated</option><option value="expressive">Bright or expressive</option><option value="earth">Earth tones</option><option value="cool">Cool tones</option></select>
           <p class="helper-text">This is 10% of the score. Understated and expressive compare patterns and non-neutral colours; earth and cool tones compare the colours you entered with those palettes. No direction uses a fixed 75/100. Nothing is inferred from your appearance.</p>
 
           <div class="section-divider"></div>
           <div class="section-top"><span class="step-number">02</span><div><h3>Add your photo</h3><p>Your photo stays in this browser. Tap it to sample a garment colour.</p></div></div>
           <div id="photo-area" class="photo-area empty" aria-label="Outfit photo">
             <div id="empty-photo" class="empty-photo"><svg viewBox="0 0 60 60" aria-hidden="true"><rect x="6" y="10" width="48" height="40" rx="5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="20" cy="24" r="5" fill="none" stroke="currentColor" stroke-width="2"/><path d="m10 44 14-13 9 8 7-7 10 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg><strong>Start with a photo</strong><span>Upload, drop or paste an image</span></div>
-            <img id="outfit-image" src="/assets/sample-casual.webp" alt="" hidden>
+            <img id="outfit-image" alt="" width="1086" height="1448" hidden>
             <span id="photo-badge" class="photo-badge" hidden></span>
             <span id="sample-marker" class="sample-marker" hidden aria-hidden="true"></span>
           </div>
-          <div class="photo-actions"><button id="upload-button" class="button button-dark" type="button">Upload photo</button><input id="photo-input" class="visually-hidden" type="file" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" aria-label="Choose an outfit photo"></div>
-          <div class="sample-choices" aria-label="Sample outfits"><span>Or try a sample:</span><button type="button" data-sample="casual">Casual day</button><button type="button" data-sample="dinner">Dinner mismatch</button><button type="button" data-sample="interview">Interview</button><button type="button" data-sample="earth">Earth tones</button></div>
+          <div class="photo-actions"><button id="upload-button" class="button button-dark" type="button">Upload photo</button><input id="photo-input" class="visually-hidden" type="file" name="outfit-photo" accept=".png,.jpg,.jpeg,.webp,image/png,image/jpeg,image/webp" aria-label="Choose an outfit photo"></div>
+          <div class="sample-choices" aria-label="Sample outfits"><p>Or try an AI-generated example:</p><div class="sample-grid"><button type="button" data-sample="casual"><img src="/assets/sample-casual.webp" alt="" width="1086" height="1448" loading="lazy"><span>Casual day</span></button><button type="button" data-sample="dinner"><img src="/assets/sample-dinner.webp" alt="" width="1024" height="1536" loading="lazy"><span>Dinner mismatch</span></button><button type="button" data-sample="interview"><img src="/assets/sample-interview.webp" alt="" width="1122" height="1402" loading="lazy"><span>Interview</span></button><button type="button" data-sample="earth"><img src="/assets/sample-earth.webp" alt="" width="1122" height="1402" loading="lazy"><span>Earth tones</span></button></div></div>
           <p id="photo-message" class="helper-text" role="status">JPEG, PNG or WebP, up to 5 MB. You can also drop or paste an image. No image is sent to a server.</p>
 
           <div class="section-divider"></div>
           <div class="section-top"><span class="step-number">03</span><div><h3>Check the pieces</h3><p>Try local image suggestions, then correct them or add anything missed.</p></div></div>
-          <div class="vision-controls"><button id="suggest-button" class="button button-outline" type="button" disabled>Suggest garments from photo</button><p id="vision-status" class="helper-text" role="status">Optional. First use downloads about 160 MB of free model files; your photo stays in this browser. Results are guesses, not verified labels.</p></div>
-          <div id="vision-panel" class="vision-panel" hidden><strong>Review image suggestions</strong><p>The model checks three fixed areas of the photo. Change or untick any wrong guess before adding it.</p><div id="vision-list"></div><button id="apply-vision" class="button button-dark" type="button">Add selected pieces</button></div>
+          <div class="vision-controls"><button id="suggest-button" class="button button-outline" type="button" disabled>Suggest details from photo</button><p id="vision-status" class="helper-text" role="status">Optional. First use downloads about 160 MB of free model files; your photo stays in this browser. Garment, colour and pattern are editable guesses.</p></div>
+          <div id="vision-panel" class="vision-panel" hidden><strong>Review image suggestions</strong><p>The model checks three fixed areas of the photo. Review the garment, colour and pattern in each row; change or untick wrong guesses before adding them.</p><div id="vision-list"></div><button id="apply-vision" class="button button-dark" type="button">Add selected pieces</button></div>
           <p class="inventory-hint">Choose a colour for every piece before scoring. You can use “Pick from photo”, tap that garment in the image, and correct the result.</p>
-          <div id="item-list" class="item-list" aria-live="polite"></div>
-          <div class="inventory-actions"><button id="add-item" class="text-button" type="button"><span aria-hidden="true">＋</span> Add a piece</button><span id="item-count">0 pieces added</span></div>
-          <div class="skin-compare"><h4>Colour near your face <span class="optional-label">Optional</span></h4><p>Pick a visible skin area in your photo. We describe the photographed colour and compare its light/dark contrast with garments near your face. If you choose a contrast goal, this comparison can affect 8% of the score. Lighting can change the sample.</p><button id="skin-button" class="button button-outline" type="button" disabled>Pick colour from photo</button><div id="skin-output" class="skin-output" hidden></div><div id="skin-goal-group" class="skin-goal-group" hidden><label class="field-label" for="skin-goal">Your contrast goal</label><select id="skin-goal" class="wide-select" aria-describedby="contrast-goal-guide"><option value="none" selected>No contrast goal</option><option value="soft">Soft contrast</option><option value="balanced">Balanced contrast</option><option value="bold">Bold contrast</option></select><ul id="contrast-goal-guide" class="contrast-goal-guide"><li><strong>No contrast goal:</strong> Describe the sampled colour without changing the score.</li><li><strong>Soft:</strong> Aim for a small light/dark difference from clothes near your face.</li><li><strong>Balanced:</strong> Aim for a noticeable, moderate light/dark difference.</li><li><strong>Bold:</strong> Aim for a strong light/dark difference.</li></ul><p>This is a personal styling choice, not a rule about which skin colours are attractive. An occasion cap still takes priority.</p></div></div>
+          <div id="item-list" class="item-list"></div>
+          <div class="inventory-actions"><button id="add-item" class="text-button" type="button"><span aria-hidden="true">＋</span> Add a piece</button><span id="item-count" role="status">0 pieces added</span></div>
+          <div class="skin-compare"><h4>Colour near your face <span class="optional-label">Optional</span></h4><p>Pick a visible skin area in your photo. We describe the photographed colour and compare its light/dark contrast with garments near your face. If you choose a contrast goal, this comparison can affect 8% of the score. Lighting can change the sample.</p><button id="skin-button" class="button button-outline" type="button" disabled>Pick colour from photo</button><div id="skin-output" class="skin-output" hidden></div><div id="skin-goal-group" class="skin-goal-group" hidden><label class="field-label" for="skin-goal">Your contrast goal</label><select id="skin-goal" name="contrast-goal" class="wide-select" aria-describedby="contrast-goal-guide"><option value="none" selected>No contrast goal</option><option value="soft">Soft contrast</option><option value="balanced">Balanced contrast</option><option value="bold">Bold contrast</option></select><ul id="contrast-goal-guide" class="contrast-goal-guide"><li><strong>No contrast goal:</strong> Describe the sampled colour without changing the score.</li><li><strong>Soft:</strong> Aim for a small light/dark difference from clothes near your face.</li><li><strong>Balanced:</strong> Aim for a noticeable, moderate light/dark difference.</li><li><strong>Bold:</strong> Aim for a strong light/dark difference.</li></ul><p>This is a personal styling choice, not a rule about which skin colours are attractive. An occasion cap still takes priority.</p></div></div>
           <fieldset class="self-view"><legend>Before seeing the score, what’s your own view? <span>Optional</span></legend><div class="self-view-options"><label><input type="radio" name="self-view" value="uncertain" checked><span>Not sure yet</span></label><label><input type="radio" name="self-view" value="low"><span>Needs work</span></label><label><input type="radio" name="self-view" value="good"><span>Works well</span></label></div></fieldset>
           <p class="own-view-hint">This records your judgement before advice. It appears beside the result but never changes the score. Your choice locks when you reveal the score.</p>
-          <button id="score-button" class="button button-primary" type="button" disabled>See my outfit score <span aria-hidden="true">↗</span></button>
+          <p id="score-readiness" class="score-readiness" role="status">Add a photo or choose a sample to begin.</p>
+          <button id="score-button" class="button button-primary" type="button" aria-describedby="score-readiness" disabled>See my outfit score <span aria-hidden="true">↗</span></button>
           <p id="input-error" class="input-error" role="alert" hidden></p>
         </section>
 
         <aside class="work-panel result-panel" aria-labelledby="result-title">
           <div class="result-top"><span class="result-label">YOUR ANALYSIS</span><span id="engine-label" class="engine-label">Local rule engine</span></div>
-          <div id="result-empty" class="result-empty"><div class="orbit" aria-hidden="true"><span></span><span></span><span></span></div><h2 id="result-title">A little more context,<br>then a clearer answer.</h2><p>Add a photo and confirm at least two pieces and their colours. We’ll show how occasion, garment pairing, colour and your preference each affect the estimate.</p><div class="result-footnote">Nothing here judges your body, appearance or identity.</div></div>
+          <div id="result-empty" class="result-empty"><div class="orbit" aria-hidden="true"><span></span><span></span><span></span></div><h2 id="result-title">A little more context,<br>then a clearer answer.</h2><p id="result-empty-copy">Add a photo and confirm at least two pieces and their colours. We’ll show how occasion, garment pairing, colour and your preference each affect the estimate.</p><div class="result-footnote">Nothing here judges your body, appearance or identity.</div></div>
           <div id="result-content" class="result-content" hidden>
             <div class="score-header"><div><p class="score-subtitle">Contextual fit estimate</p><div class="score-number"><strong id="score-value" aria-live="polite">—</strong><span>/ 100</span></div></div><span id="score-context" class="score-context"></span></div>
             <p id="self-view-result" class="self-view-result" hidden></p>
@@ -78,7 +83,7 @@
             <div id="dimensions" class="dimensions"></div>
             <div id="score-notes" class="score-notes" hidden></div>
             <div class="suggestion-block"><div class="suggestion-heading"><span class="suggestion-icon" aria-hidden="true">↗</span><h3>One change to explore</h3></div><div id="suggestion-content"></div></div>
-            <div class="method-note"><h3>How this works</h3><p>Photo: kept in this browser. Garments: suggested by a free local vision model when requested, then reviewed by you. Colours: sampled from pixels and confirmed by you. Score and swap: calculated by inspectable rules. Occasion has priority; season is a small optional palette cue. A skin-area sample affects the colour-near-face component only when you also choose a contrast goal. Your pre-score view does not affect the score. No gender is inferred.</p></div>
+            <div class="method-note"><h3>How this works</h3><p>Photo: kept in this browser. Garment, colour and pattern: guessed by a free local vision model when requested, then reviewed by you. You can also sample a garment colour from pixels. Score and swap: calculated by inspectable rules, including outfit-structure checks. Occasion has priority; season is a small optional palette cue. A skin-area sample affects the colour-near-face component only when you also choose a contrast goal. Your pre-score view does not affect the score. No gender is inferred.</p></div>
           </div>
         </aside>
       </div>

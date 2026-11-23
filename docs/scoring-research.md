@@ -1,6 +1,6 @@
 # Evidence and limits behind the scoring revision
 
-This is a development note, not a claim that the prototype's numeric scores have been validated. The rules in `src/engine.js` remain explicit design choices. The student's task is to inspect and defend them.
+This is a development note, not a claim that the prototype's numeric scores have been validated. The rules in `src/engine.js` and `src/semantic.js` remain explicit design choices. The student's task is to inspect and defend them.
 
 ## Occasion before colour
 
@@ -15,6 +15,8 @@ Perrett and Sprengelmeyer (2021) found observer preferences for different simula
 Pantone's New York Fashion Week Autumn/Winter 2026–27 report includes earthy neutrals alongside vivid shades and five seasonless colours. That is evidence that seasonal *trends* are varied and temporary, not that only earth tones suit autumn or that a trend makes an outfit appropriate for an interview. The app's optional spring/summer/autumn/winter palette cue changes the colour component by at most four points. It is a transparent design example, not a validated or automatically updated trend model. It does not infer weather comfort, fabric or layering.
 
 ## Prototype decision
+
+The semantic layer groups occasion conflicts and garment pairings and adds an input-coverage check. A full outfit needs a dress or an upper and lower piece, plus footwear. Missing or duplicate structural pieces limit the total to 70–85 until the user confirms the labels; these numbers express reduced confidence in a whole-outfit estimate, not a judgement about the wearer. Dress with separate pieces may be intentional layering, so it prompts confirmation without a penalty. These checks are implementation decisions, not claims established by the studies below.
 
 Without both a skin-area sample and a chosen contrast goal, the overall score weights occasion 55%, garment pairing 20%, colour 15% and stated style direction 10%. When both are supplied, the colour allocation is split into palette balance 7% and user-directed near-face contrast 8%. A contrast ratio below 2 is labelled soft, 2 to below 4.5 balanced, and 4.5 or above bold. Matching the user's chosen band receives 100 within that component; an adjacent band receives 65 and the opposite band 30. These thresholds are **unvalidated prototype choices**. For a conventional interview, one, two or three entered casual garment conflicts cap the total at 65, 45 or 30 respectively, so colour cannot conceal a contextual mismatch. The photo with a printed T-shirt, shorts and flip-flops remains 30/100 for a conventional interview even if the contrast component changes. For a smart-casual dinner, one, two or three conflicts among shorts, casual flip-flops and a printed T-shirt cap the total at 75, 60 or 50. A dinner score of 74 for that combination prompted the revision. Dress sandals are a separate garment type and do not trigger the casual-footwear conflict. These dinner thresholds are also design choices, not results established by the cited research. A relaxed venue may welcome the same outfit. Different employers and cultures may use different standards; this is not a judgement of the wearer.
 

@@ -1,6 +1,14 @@
 const LIBRARY = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@4.3.2';
 const MODEL = 'Xenova/clip-vit-base-patch32';
 
+const colours = ['black', 'white', 'grey', 'cream', 'beige', 'brown', 'navy', 'blue', 'red', 'orange', 'yellow', 'green', 'pink', 'purple'];
+const patterns = [
+  ['solid', 'plain solid colour with no visible pattern'],
+  ['stripe', 'striped pattern'],
+  ['print', 'graphic print or illustrated pattern'],
+  ['check', 'checked or plaid pattern']
+];
+
 const zones = [
   { name: 'Upper body', rect: [0.16, 0.12, 0.84, 0.53], candidates: [
     ['tshirt', 'a photo of a T-shirt'], ['shirt', 'a photo of a shirt or blouse'],
@@ -56,7 +64,12 @@ function crop(image, rect) {
   return canvas;
 }
 
-/** Estimates one garment per body region; scores are relative similarities, not confidence. */
+function bestLabel(result, candidates) {
+  const best = result.reduce((winner, entry) => !winner || entry.score > winner.score ? entry : winner, null);
+  return candidates.find(([, prompt]) => prompt === best?.label)?.[0] ?? null;
+}
+
+/** Estimates one garment, colour and pattern per region; all are editable guesses. */
 export async function suggestGarments(image, onProgress) {
   if (!image.complete || !image.naturalWidth) throw new Error('Wait for the photo to finish loading.');
   onProgress?.('Loading the free vision model. The first use may take a few minutes…');
@@ -70,7 +83,20 @@ export async function suggestGarments(image, onProgress) {
       kind: zone.candidates.find(([, prompt]) => prompt === entry.label)?.[0],
       similarity: entry.score
     })).filter(entry => entry.kind).sort((a, b) => b.similarity - a.similarity);
-    if (ranked.length) suggestions.push({ zone: zone.name, kind: ranked[0].kind, alternatives: ranked.slice(0, 3).map(entry => entry.kind) });
+    if (!ranked.length) continue;
+    const kind = ranked[0].kind;
+    const garment = zone.candidates.find(([key]) => key === kind)[1].replace(/^a photo of (a|an) /, '');
+    const colourCandidates = colours.map(colour => [colour, `a photo of ${colour} ${garment}`]);
+    const patternCandidates = patterns.map(([pattern, description]) => [pattern, `a photo of ${garment} with a ${description}`]);
+    onProgress?.(`Checking ${zone.name.toLowerCase()} colour and pattern…`);
+    const colourResult = await pipe(input, colourCandidates.map(([, prompt]) => prompt));
+    const patternResult = await pipe(input, patternCandidates.map(([, prompt]) => prompt));
+    suggestions.push({
+      zone: zone.name, kind,
+      color: bestLabel(colourResult, colourCandidates),
+      pattern: bestLabel(patternResult, patternCandidates),
+      alternatives: ranked.slice(0, 3).map(entry => entry.kind)
+    });
   }
   return suggestions.filter((entry, index) => entry.kind !== 'dress' || !suggestions.slice(0, index).some(earlier => earlier.kind === 'dress'));
 }

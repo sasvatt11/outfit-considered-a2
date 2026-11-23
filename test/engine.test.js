@@ -177,3 +177,46 @@ test('skin-colour preference cannot lift a conventional interview cap', () => {
   assert.equal(result.total, 30);
   assert.equal(result.dimensions.find(entry => entry.key === 'skinContrast').weight, 8);
 });
+
+test('a shirt and blazer alone cannot receive a confident whole-outfit score', () => {
+  const partial = [
+    { id: '1', kind: 'shirt', color: 'white', pattern: 'solid' },
+    { id: '2', kind: 'blazer', color: 'navy', pattern: 'solid' }
+  ];
+  const result = evaluateOutfit({ occasion: 'interview', items: partial });
+  assert.equal(result.cap, 70);
+  assert.equal(result.total, 70);
+  assert.ok(result.semanticChecks.some(check => check.id === 'missing-main'));
+  assert.ok(result.semanticChecks.some(check => check.id === 'missing-footwear'));
+  assert.equal(suggestChange({ occasion: 'interview', items: partial }), null);
+  const complete = evaluateOutfit({ occasion: 'interview', items: [
+    ...partial,
+    { id: '3', kind: 'trousers', color: 'navy', pattern: 'solid' },
+    { id: '4', kind: 'loafers', color: 'black', pattern: 'solid' }
+  ] });
+  assert.equal(complete.cap, null);
+  assert.ok(complete.total > result.total);
+});
+
+test('duplicate footwear limits confidence until the entered outfit is corrected', () => {
+  const result = evaluateOutfit({ occasion: 'casual', items: [
+    ...casual,
+    { id: '4', kind: 'sandals', color: 'black', pattern: 'solid' }
+  ] });
+  assert.equal(result.cap, 70);
+  assert.ok(result.semanticChecks.some(check => check.id === 'multiple-footwear'));
+  assert.equal(suggestChange({ occasion: 'casual', items: [...casual, { id: '4', kind: 'sandals', color: 'black', pattern: 'solid' }] }), null);
+});
+
+test('dress layering is flagged for confirmation without an automatic style penalty', () => {
+  const dress = { id: '1', kind: 'dress', color: 'navy', pattern: 'solid' };
+  const blazer = { id: '2', kind: 'blazer', color: 'black', pattern: 'solid' };
+  const shoes = { id: '3', kind: 'loafers', color: 'black', pattern: 'solid' };
+  const layered = evaluateOutfit({ occasion: 'dinner', items: [dress, blazer, shoes] });
+  assert.equal(layered.cap, null);
+  assert.equal(layered.semanticChecks.length, 0);
+  const ambiguous = evaluateOutfit({ occasion: 'dinner', items: [dress, blazer, shoes, { id: '4', kind: 'trousers', color: 'navy', pattern: 'solid' }] });
+  assert.ok(ambiguous.semanticChecks.some(check => check.id === 'dress-layering'));
+  assert.equal(ambiguous.cap, null);
+  assert.ok(ambiguous.dimensions.find(d => d.key === 'pairing').score >= layered.dimensions.find(d => d.key === 'pairing').score);
+});

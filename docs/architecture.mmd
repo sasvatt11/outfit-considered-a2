@@ -1,6 +1,6 @@
 flowchart LR
     U[Person] -->|photo or sample| P[Photo preview<br/>implemented]
-    P -->|three crops| V[CLIP garment suggestions<br/>implemented, optional]
+    P -->|three crops| V[CLIP garment, colour and pattern suggestions<br/>implemented, optional]
     M[Model files<br/>downloaded on demand] -.-> V
     U -->|confirm, edit, add| E[Editable outfit facts<br/>implemented]
     V -->|guesses to review| E

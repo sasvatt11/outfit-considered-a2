@@ -3,6 +3,7 @@
  * These weights are design choices for this prototype, not validated fashion facts.
  */
 import { assessNearFaceContrast, CONTRAST_GOALS } from './appearance.js';
+import { assessSemanticRules } from './semantic.js';
 
 export const OCCASIONS = {
   casual: { label: 'Casual day', target: 1 },
@@ -86,23 +87,11 @@ export function evaluateOutfit({ occasion, preference = 'none', season = 'none',
     return { total: null, dimensions: [], notes: ['Add at least two visible garments to receive an estimate.'] };
   }
 
-  const kinds = items.map(item => item.kind);
+  const semantics = assessSemanticRules(occasion, items, GARMENTS);
   const target = OCCASIONS[occasion].target;
   const distance = items.reduce((sum, item) => sum + Math.abs(GARMENTS[item.kind].formality - target), 0) / items.length;
-  const interviewConflicts = [];
-  const dinnerConflicts = [];
-  if (occasion === 'dinner') {
-    if (kinds.includes('shorts')) dinnerConflicts.push('shorts');
-    if (kinds.includes('sandals')) dinnerConflicts.push('casual sandals or flip-flops');
-    if (items.some(item => item.kind === 'tshirt' && item.pattern === 'print')) dinnerConflicts.push('a printed T-shirt');
-  }
-  if (occasion === 'interview') {
-    if (kinds.includes('shorts')) interviewConflicts.push('shorts');
-    else if (kinds.includes('jeans')) interviewConflicts.push('jeans');
-    if (kinds.includes('sandals')) interviewConflicts.push('sandals');
-    else if (kinds.includes('sneakers')) interviewConflicts.push('trainers');
-    if (kinds.includes('tshirt')) interviewConflicts.push(items.some(item => item.kind === 'tshirt' && item.pattern === 'print') ? 'a printed T-shirt' : 'a T-shirt');
-  }
+  const interviewConflicts = occasion === 'interview' ? semantics.occasionConflicts : [];
+  const dinnerConflicts = occasion === 'dinner' ? semantics.occasionConflicts : [];
   let occasionScore = clamp(100 - distance * 28);
   if (interviewConflicts.length >= 3) occasionScore = Math.min(occasionScore, 20);
   else if (interviewConflicts.length === 2) occasionScore = Math.min(occasionScore, 35);
@@ -120,37 +109,8 @@ export function evaluateOutfit({ occasion, preference = 'none', season = 'none',
       ? `Most entered pieces match the ${OCCASIONS[occasion].label.toLowerCase()} setting.`
       : `The entered garment types differ in formality from the selected ${OCCASIONS[occasion].label.toLowerCase()} setting.`;
 
-  let pairing = 80;
-  const pairingReasons = [];
-  if (kinds.includes('dress') && (kinds.some(k => GARMENTS[k].slot === 'upper') || kinds.some(k => GARMENTS[k].slot === 'lower'))) {
-    pairing -= 20;
-    pairingReasons.push('Check whether the dress and separate pieces are all visible together.');
-  }
-  if (kinds.includes('jeans') && kinds.includes('sneakers') && occasion === 'casual') {
-    pairing += 14;
-    pairingReasons.push('Jeans and trainers form a familiar casual pairing.');
-  }
-  if (kinds.includes('shorts') && kinds.includes('sandals') && occasion === 'casual') {
-    pairing += 14;
-    pairingReasons.push('Shorts and sandals form a familiar casual pairing.');
-  }
-  if (kinds.includes('trousers') && kinds.includes('loafers')) {
-    pairing += 14;
-    pairingReasons.push('Tailored trousers and smart shoes share a similar level of dress.');
-  }
-  if (kinds.includes('trousers') && kinds.includes('sneakers') && occasion === 'interview') {
-    pairing -= 18;
-    pairingReasons.push('Trainers introduce a more casual note beside tailored trousers.');
-  }
-  if (kinds.includes('blazer') && (kinds.includes('trousers') || kinds.includes('skirt') || kinds.includes('dress'))) {
-    pairing += 8;
-    pairingReasons.push('The blazer relates clearly to the main outfit.');
-  }
-  if (items.filter(item => item.pattern !== 'solid').length > 1) {
-    pairing -= 10;
-    pairingReasons.push('Two visible patterns compete for attention.');
-  }
-  const pairingScore = clamp(pairing);
+  const pairingScore = clamp(80 + semantics.pairingAdjustments.reduce((sum, rule) => sum + rule.points, 0));
+  const pairingReasons = semantics.pairingAdjustments.map(rule => rule.reason);
   if (!pairingReasons.length) pairingReasons.push('No strong garment-pairing conflict was found in the selected rules.');
 
   const coloured = items.filter(item => !COLORS[item.color].neutral);
@@ -207,16 +167,16 @@ export function evaluateOutfit({ occasion, preference = 'none', season = 'none',
   const weightedTotal = clamp(dimensions.reduce((sum, d) => sum + d.score * d.weight / 100, 0));
   const interviewCap = interviewConflicts.length >= 3 ? 30 : interviewConflicts.length === 2 ? 45 : interviewConflicts.length === 1 ? 65 : null;
   const dinnerCap = dinnerConflicts.length >= 3 ? 50 : dinnerConflicts.length === 2 ? 60 : dinnerConflicts.length === 1 ? 75 : null;
-  const cap = occasion === 'interview' ? interviewCap : dinnerCap;
+  const occasionCap = occasion === 'interview' ? interviewCap : dinnerCap;
+  const inputCap = semantics.inputChecks.reduce((lowest, check) => check.cap === null ? lowest : Math.min(lowest, check.cap), 100);
+  const cap = Math.min(occasionCap ?? 100, inputCap) === 100 ? null : Math.min(occasionCap ?? 100, inputCap);
   const total = cap === null ? weightedTotal : Math.min(weightedTotal, cap);
   const notes = [];
   if (interviewCap !== null && weightedTotal > interviewCap) notes.push(`The weighted components total ${weightedTotal}/100, but interview suitability limits the total to ${interviewCap}/100. This assumes a conventional interview dress code.`);
   if (dinnerCap !== null && weightedTotal > dinnerCap) notes.push(`The weighted components total ${weightedTotal}/100, but smart-casual dinner suitability limits the total to ${dinnerCap}/100. A very casual venue may have different expectations.`);
   if (skinRgb && contrastGoal !== 'none' && !skinRelation) notes.push('Add or confirm an upper-body, outerwear or dress colour to include the selected photo patch in scoring.');
-  const slots = new Set(items.map(item => GARMENTS[item.kind].slot));
-  if (!slots.has('footwear')) notes.push('Footwear is not included; this estimate covers only the visible pieces you entered.');
-  if (!slots.has('dress') && (!slots.has('upper') || !slots.has('lower'))) notes.push('The main outfit may be incomplete in this photo.');
-  return { total, dimensions, notes, weightedTotal, cap };
+  notes.push(...semantics.inputChecks.map(check => check.message));
+  return { total, dimensions, notes, weightedTotal, cap, semanticChecks: semantics.inputChecks };
 }
 
 export function applyChange(items, change) {
@@ -226,6 +186,7 @@ export function applyChange(items, change) {
 export function suggestChange(context) {
   const before = evaluateOutfit(context);
   if (before.total === null || before.total >= 88) return null;
+  if (before.semanticChecks.some(check => check.cap !== null)) return null;
   const options = [];
   const offer = (item, patch, explanation) => {
     const revisedItems = applyChange(context.items, { itemId: item.id, patch });
