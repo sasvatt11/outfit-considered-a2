@@ -5,10 +5,9 @@
 **Student:** Sasvattram Seetharaman (2689646)
 **Total report word count:** approximately 1,173 (abstract 157 + main report 1,016)
 **Abstract word count:** 157
-**Repository:** Local Git repository; not published
-**README:** README.md in the project folder
-**Project version:** Local tag a2-contrast-options
-
+**Repository:** [outfit-considered-a2](https://github.com/sasvatt11/outfit-considered-a2)
+**README:** [project README](https://github.com/sasvatt11/outfit-considered-a2/blob/main/README.md)
+**Project version:** [a2-public-submission](https://github.com/sasvatt11/outfit-considered-a2/releases/tag/a2-public-submission)
 ## Abstract
 
 An outfit rating can appear objective even though clothing choices depend on occasion and personal preference. I developed *Outfit, considered.*, a no-cost web prototype that makes those assumptions visible. A user chooses an occasion and optional season, uploads a photo, requests optional browser-run garment suggestions, then confirms or adds items and colours. They can record their own judgement before advice. A local rule engine explains four score components, or five after an optional skin-area sample, limits scores when major occasion mismatches remain, and offers one reversible swap. Four AI-generated photos provide repeatable walkthroughs; their labels are prefilled demonstration data, separate from the vision model. The photograph stays in the browser. A user-picked skin-area colour and contrast goal can affect 8% of the weighted score; gender is not inferred. The model checks three fixed image regions, so it can miss layers. This prototype demonstrates a correctable human–AI interaction; it does not establish fashion expertise or improved decisions.
