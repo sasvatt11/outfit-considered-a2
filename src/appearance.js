@@ -1,9 +1,9 @@
 /** Photo-colour comparisons, not measurements of identity or attractiveness. */
 export const CONTRAST_GOALS = {
-  none: 'No contrast goal',
-  soft: 'Soft contrast',
-  balanced: 'Balanced contrast',
-  bold: 'Bold contrast'
+  none: 'no score effect',
+  soft: 'a small light/dark difference',
+  balanced: 'a noticeable light/dark difference',
+  bold: 'a strong light/dark difference'
 };
 
 function validRgb(rgb) {
@@ -29,9 +29,9 @@ function contrastBand(ratio) {
 export function describePhotoPatch(rgb) {
   if (!validRgb(rgb)) throw new Error('Choose a valid photo colour.');
   const lightness = luminance(rgb);
-  const brightness = lightness < 0.12 ? 'deep-looking' : lightness < 0.28 ? 'medium-deep-looking' : lightness < 0.5 ? 'medium-light-looking' : 'light-looking';
-  const cast = rgb[0] - rgb[2] > 25 ? 'warm colour cast' : rgb[2] - rgb[0] > 15 ? 'cool colour cast' : 'fairly neutral colour cast';
-  return `The selected photo patch appears ${brightness} with a ${cast}. This describes the photo under its lighting, not your actual skin tone.`;
+  const brightness = lightness < 0.12 ? 'dark' : lightness < 0.28 ? 'medium-dark' : lightness < 0.5 ? 'medium-light' : 'light';
+  const cast = rgb[0] - rgb[2] > 25 ? 'warm-toned' : rgb[2] - rgb[0] > 15 ? 'cool-toned' : 'fairly neutral';
+  return `The selected area looks ${brightness} and ${cast} in this photo. Lighting can change how it looks; this is not a measurement of your skin tone.`;
 }
 
 export function comparePatchWithItems(rgb, items, colors) {

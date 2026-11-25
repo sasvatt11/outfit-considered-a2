@@ -85,8 +85,8 @@ test('a printed T-shirt, shorts and sandals do not receive a high smart-casual d
   const result = evaluateOutfit(context);
   assert.equal(result.total, 50);
   assert.equal(result.cap, 50);
-  assert.match(result.dimensions[0].reason, /shorts.*casual sandals.*printed T-shirt.*smart-casual dinner/i);
-  assert.match(result.notes[0], /smart-casual dinner suitability/);
+  assert.match(result.dimensions[0].reason, /shorts.*casual sandals.*printed T-shirt.*smart casual dress level/i);
+  assert.match(result.notes[0], /smart casual dress level/);
   const suggestion = suggestChange(context);
   assert.ok(suggestion && suggestion.after > result.total);
 });
@@ -219,4 +219,41 @@ test('dress layering is flagged for confirmation without an automatic style pena
   assert.ok(ambiguous.semanticChecks.some(check => check.id === 'dress-layering'));
   assert.equal(ambiguous.cap, null);
   assert.ok(ambiguous.dimensions.find(d => d.key === 'pairing').score >= layered.dimensions.find(d => d.key === 'pairing').score);
+});
+
+test('a relaxed outfit can be scored for staying in without footwear', () => {
+  const items = [
+    { id: '1', kind: 'hoodie', color: 'grey', pattern: 'solid' },
+    { id: '2', kind: 'joggers', color: 'black', pattern: 'solid' }
+  ];
+  const casual = evaluateOutfit({ occasion: 'casual', items });
+  const smart = evaluateOutfit({ occasion: 'interview', items });
+  assert.equal(casual.cap, null);
+  assert.ok(casual.total >= 85);
+  assert.ok(smart.total < casual.total);
+  assert.ok(smart.semanticChecks.some(check => check.id === 'missing-footwear'));
+});
+
+test('new smart-casual pieces score well without relying on a specific event', () => {
+  const items = [
+    { id: '1', kind: 'polo', color: 'cream', pattern: 'solid' },
+    { id: '2', kind: 'chinos', color: 'navy', pattern: 'solid' },
+    { id: '3', kind: 'flats', color: 'brown', pattern: 'solid' }
+  ];
+  const result = evaluateOutfit({ occasion: 'dinner', items });
+  assert.equal(result.cap, null);
+  assert.ok(result.total >= 85);
+});
+
+test('fancy attire is distinct from professional attire', () => {
+  const items = [
+    { id: '1', kind: 'eveningDress', color: 'navy', pattern: 'solid' },
+    { id: '2', kind: 'heels', color: 'black', pattern: 'solid' }
+  ];
+  const fancy = evaluateOutfit({ occasion: 'fancy', items });
+  const professional = evaluateOutfit({ occasion: 'interview', items });
+  assert.equal(fancy.cap, null);
+  assert.ok(fancy.total >= 90);
+  assert.equal(professional.cap, 65);
+  assert.ok(fancy.total > professional.total);
 });

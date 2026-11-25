@@ -27,10 +27,10 @@ Assignment 2 for Intelligent Interactive Systems. The submitted project needs in
 - Upload a photo and sample colours directly from it.
 - An optional browser-run vision-language model suggests garments in three fixed image areas. The user reviews, edits, or ignores its guesses and adds missed items manually.
 - The model downloads on first use and needs an internet connection then; it needs no paid service or API key.
-- An optional user-selected skin-area sample describes the photographed patch. The default “No contrast goal” leaves scoring unchanged. If the user chooses soft, balanced or bold contrast, it is compared with colours worn near the face and receives 8% of the weighted score. No identity or universal skin-tone palette is inferred; interview caps still take priority.
+- An optional user-selected skin-area sample describes the photographed patch. The default “Just show me” choice leaves scoring unchanged. If the user chooses a small, noticeable or strong light/dark difference, it is compared with clothes worn near the face and receives 8% of the weighted score. No identity or universal skin-tone palette is inferred; occasion caps still take priority.
 - A recorded pre-score judgement is shown beside the result but does not alter it. The chosen style direction affects only the preference portion of the score.
 - An optional season provides a small palette cue, without claiming to assess weather comfort or a universal colour trend.
-- A local knowledge-based engine prioritises occasion suitability, caps conventional-interview and smart-casual dinner scores with major garment conflicts, explains its score, and compares a suggested swap. Casual flip-flops and dress sandals are distinct inputs. The caps are prototype design decisions, not validated fashion measures.
+- A local knowledge-based engine prioritises occasion suitability across Casual, Smart casual, Fancy and Smart levels, caps major mismatches in the latter three, explains its score, and compares a suggested swap. It offers 34 grouped garment choices, including relaxed clothes and dress shoes. Footwear is optional for Casual because staying in is one of its examples. The caps are prototype design decisions, not validated fashion measures.
 - No paid service, account or API key is needed.
 - The prototype must label sample data and unfinished capabilities accurately.
 

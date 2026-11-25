@@ -6,9 +6,10 @@ import { assessNearFaceContrast, CONTRAST_GOALS } from './appearance.js';
 import { assessSemanticRules } from './semantic.js';
 
 export const OCCASIONS = {
-  casual: { label: 'Casual day', target: 1 },
-  dinner: { label: 'Dinner out (smart casual)', target: 2 },
-  interview: { label: 'Interview (conventional)', target: 3 }
+  casual: { label: 'Casual', target: 1, description: 'Staying in, errands or relaxed plans. Comfort and easy layers fit here.' },
+  dinner: { label: 'Smart casual', target: 2, description: 'A friend’s birthday, dinner out or a relaxed social event. Neat pieces can still feel easy.' },
+  fancy: { label: 'Fancy', target: 3, description: 'A dress-up date, celebration or evening event. More polished pieces are expected.' },
+  interview: { label: 'Smart', target: 3, description: 'An interview, presentation or professional setting with a conventional dress code.' }
 };
 
 export const SEASONS = {
@@ -21,20 +22,39 @@ export const SEASONS = {
 
 export const GARMENTS = {
   tshirt: { label: 'T-shirt', slot: 'upper', formality: 1 },
+  tank: { label: 'Vest or tank top', slot: 'upper', formality: 1 },
+  hoodie: { label: 'Hoodie', slot: 'upper', formality: 1 },
+  sweatshirt: { label: 'Sweatshirt', slot: 'upper', formality: 1 },
+  polo: { label: 'Polo shirt', slot: 'upper', formality: 2 },
   shirt: { label: 'Shirt or blouse', slot: 'upper', formality: 3 },
   knit: { label: 'Knitwear', slot: 'upper', formality: 2 },
   jeans: { label: 'Jeans', slot: 'lower', formality: 1 },
   shorts: { label: 'Shorts', slot: 'lower', formality: 1 },
+  tailoredShorts: { label: 'Tailored shorts', slot: 'lower', formality: 2 },
+  joggers: { label: 'Joggers', slot: 'lower', formality: 1 },
+  leggings: { label: 'Leggings', slot: 'lower', formality: 1 },
+  cargoTrousers: { label: 'Cargo trousers', slot: 'lower', formality: 1 },
+  chinos: { label: 'Chinos', slot: 'lower', formality: 2 },
   trousers: { label: 'Tailored trousers', slot: 'lower', formality: 3 },
   skirt: { label: 'Skirt', slot: 'lower', formality: 2 },
+  tailoredSkirt: { label: 'Tailored skirt', slot: 'lower', formality: 3 },
   dress: { label: 'Dress', slot: 'dress', formality: 2 },
+  casualDress: { label: 'Casual dress', slot: 'dress', formality: 1 },
+  eveningDress: { label: 'Evening dress', slot: 'dress', formality: 3 },
+  tailoredDress: { label: 'Tailored dress', slot: 'dress', formality: 3 },
+  jumpsuit: { label: 'Jumpsuit', slot: 'dress', formality: 2 },
   blazer: { label: 'Blazer', slot: 'outerwear', formality: 3 },
   jacket: { label: 'Casual jacket', slot: 'outerwear', formality: 1 },
+  denimJacket: { label: 'Denim jacket', slot: 'outerwear', formality: 1 },
+  cardigan: { label: 'Cardigan', slot: 'outerwear', formality: 2 },
+  coat: { label: 'Coat', slot: 'outerwear', formality: 2 },
   sneakers: { label: 'Trainers', slot: 'footwear', formality: 1 },
   sandals: { label: 'Casual sandals / flip-flops', slot: 'footwear', formality: 1 },
+  flats: { label: 'Flats', slot: 'footwear', formality: 2 },
   dressSandals: { label: 'Dress sandals', slot: 'footwear', formality: 2 },
   boots: { label: 'Boots', slot: 'footwear', formality: 2 },
-  loafers: { label: 'Smart shoes', slot: 'footwear', formality: 3 }
+  loafers: { label: 'Loafers or smart shoes', slot: 'footwear', formality: 3 },
+  heels: { label: 'Heels', slot: 'footwear', formality: 3 }
 };
 
 export const COLORS = {
@@ -92,6 +112,7 @@ export function evaluateOutfit({ occasion, preference = 'none', season = 'none',
   const distance = items.reduce((sum, item) => sum + Math.abs(GARMENTS[item.kind].formality - target), 0) / items.length;
   const interviewConflicts = occasion === 'interview' ? semantics.occasionConflicts : [];
   const dinnerConflicts = occasion === 'dinner' ? semantics.occasionConflicts : [];
+  const fancyConflicts = occasion === 'fancy' ? semantics.occasionConflicts : [];
   let occasionScore = clamp(100 - distance * 28);
   if (interviewConflicts.length >= 3) occasionScore = Math.min(occasionScore, 20);
   else if (interviewConflicts.length === 2) occasionScore = Math.min(occasionScore, 35);
@@ -99,12 +120,15 @@ export function evaluateOutfit({ occasion, preference = 'none', season = 'none',
   if (dinnerConflicts.length >= 3) occasionScore = Math.min(occasionScore, 35);
   else if (dinnerConflicts.length === 2) occasionScore = Math.min(occasionScore, 50);
   else if (dinnerConflicts.length === 1) occasionScore = Math.min(occasionScore, 70);
-  const conflicts = occasion === 'interview' ? interviewConflicts : dinnerConflicts;
+  if (fancyConflicts.length >= 3) occasionScore = Math.min(occasionScore, 20);
+  else if (fancyConflicts.length === 2) occasionScore = Math.min(occasionScore, 40);
+  else if (fancyConflicts.length === 1) occasionScore = Math.min(occasionScore, 65);
+  const conflicts = semantics.occasionConflicts;
   const conflictList = conflicts.length > 1
     ? `${conflicts.slice(0, -1).join(', ')} and ${conflicts.at(-1)}`
     : conflicts[0];
   const occasionReason = conflicts.length
-    ? `${conflictList[0].toUpperCase()}${conflictList.slice(1)} ${conflicts.length === 1 ? 'is' : 'are'} less suited to ${occasion === 'interview' ? 'a conventional interview' : 'a smart-casual dinner'}.`
+    ? `${conflictList[0].toUpperCase()}${conflictList.slice(1)} ${conflicts.length === 1 ? 'is' : 'are'} less suited to the selected ${OCCASIONS[occasion].label.toLowerCase()} dress level.`
     : occasionScore >= 85
       ? `Most entered pieces match the ${OCCASIONS[occasion].label.toLowerCase()} setting.`
       : `The entered garment types differ in formality from the selected ${OCCASIONS[occasion].label.toLowerCase()} setting.`;
@@ -159,21 +183,21 @@ export function evaluateOutfit({ occasion, preference = 'none', season = 'none',
       return `${COLORS[piece.color].label.toLowerCase()} ${GARMENTS[piece.kind].label.toLowerCase()} (${entry.contrast})`;
     });
     dimensions.push({
-      key: 'skinContrast', label: 'Colour near your face', score: skinRelation.score, weight: 8,
-      reason: `${pieces.join(', ')} compared with the photo sample. Your chosen goal is ${CONTRAST_GOALS[contrastGoal].toLowerCase()}. This is an experimental preference rule, not a judgement of your skin.`
+      key: 'skinContrast', label: 'Clothes near your face', score: skinRelation.score, weight: 8,
+      reason: `${pieces.join(', ')} compared with the photo sample. You chose ${CONTRAST_GOALS[contrastGoal]}. This is an experimental preference rule, not a judgement of your skin.`
     });
   }
   dimensions.push({ key: 'preference', label: 'Your preference', score: preferenceScore, weight: 10, reason: preferenceReason });
   const weightedTotal = clamp(dimensions.reduce((sum, d) => sum + d.score * d.weight / 100, 0));
   const interviewCap = interviewConflicts.length >= 3 ? 30 : interviewConflicts.length === 2 ? 45 : interviewConflicts.length === 1 ? 65 : null;
   const dinnerCap = dinnerConflicts.length >= 3 ? 50 : dinnerConflicts.length === 2 ? 60 : dinnerConflicts.length === 1 ? 75 : null;
-  const occasionCap = occasion === 'interview' ? interviewCap : dinnerCap;
+  const fancyCap = fancyConflicts.length >= 3 ? 40 : fancyConflicts.length === 2 ? 55 : fancyConflicts.length === 1 ? 75 : null;
+  const occasionCap = occasion === 'interview' ? interviewCap : occasion === 'dinner' ? dinnerCap : fancyCap;
   const inputCap = semantics.inputChecks.reduce((lowest, check) => check.cap === null ? lowest : Math.min(lowest, check.cap), 100);
   const cap = Math.min(occasionCap ?? 100, inputCap) === 100 ? null : Math.min(occasionCap ?? 100, inputCap);
   const total = cap === null ? weightedTotal : Math.min(weightedTotal, cap);
   const notes = [];
-  if (interviewCap !== null && weightedTotal > interviewCap) notes.push(`The weighted components total ${weightedTotal}/100, but interview suitability limits the total to ${interviewCap}/100. This assumes a conventional interview dress code.`);
-  if (dinnerCap !== null && weightedTotal > dinnerCap) notes.push(`The weighted components total ${weightedTotal}/100, but smart-casual dinner suitability limits the total to ${dinnerCap}/100. A very casual venue may have different expectations.`);
+  if (occasionCap !== null && weightedTotal > occasionCap) notes.push(`The weighted components total ${weightedTotal}/100, but the selected ${OCCASIONS[occasion].label.toLowerCase()} dress level limits the total to ${occasionCap}/100. Expectations vary by place and person.`);
   if (skinRgb && contrastGoal !== 'none' && !skinRelation) notes.push('Add or confirm an upper-body, outerwear or dress colour to include the selected photo patch in scoring.');
   notes.push(...semantics.inputChecks.map(check => check.message));
   return { total, dimensions, notes, weightedTotal, cap, semanticChecks: semantics.inputChecks };
@@ -197,13 +221,20 @@ export function suggestChange(context) {
 
   for (const item of context.items) {
     if (context.occasion === 'interview') {
-      if (item.kind === 'sneakers' || item.kind === 'boots' || item.kind === 'sandals') offer(item, { kind: 'loafers' }, 'Smart shoes may align more closely with the interview setting.');
-      if (item.kind === 'tshirt') offer(item, { kind: 'shirt', pattern: 'solid' }, 'A plain shirt or blouse may better match this setting.');
-      if (item.kind === 'jeans' || item.kind === 'shorts') offer(item, { kind: 'trousers', pattern: 'solid' }, 'Tailored trousers may give the outfit a more consistent level of dress.');
+      if (item.kind === 'sneakers' || item.kind === 'boots' || item.kind === 'sandals') offer(item, { kind: 'loafers' }, 'Smart shoes may align more closely with the selected professional dress level.');
+      if (['tshirt', 'tank', 'hoodie', 'sweatshirt'].includes(item.kind)) offer(item, { kind: 'shirt', pattern: 'solid' }, 'A plain shirt or blouse may better match this setting.');
+      if (['jeans', 'shorts', 'tailoredShorts', 'joggers', 'leggings', 'cargoTrousers'].includes(item.kind)) offer(item, { kind: 'trousers', pattern: 'solid' }, 'Tailored trousers may give the outfit a more consistent level of dress.');
+      if (item.kind === 'eveningDress') offer(item, { kind: 'tailoredDress' }, 'A tailored dress may suit a professional setting more closely.');
     }
     if (context.occasion === 'dinner') {
-      if (item.kind === 'sneakers' || item.kind === 'sandals') offer(item, { kind: 'boots' }, 'Boots may bring the footwear closer to the selected dinner setting.');
-      if (item.kind === 'tshirt') offer(item, { kind: 'knit' }, 'Knitwear may shift the outfit toward the selected dinner setting.');
+      if (item.kind === 'sandals') offer(item, { kind: 'boots' }, 'Boots may bring the footwear closer to the selected smart-casual level.');
+      if (['tshirt', 'hoodie', 'sweatshirt', 'tank'].includes(item.kind)) offer(item, { kind: 'knit' }, 'Knitwear may shift the outfit toward the selected smart-casual level.');
+      if (['shorts', 'joggers', 'leggings', 'cargoTrousers'].includes(item.kind)) offer(item, { kind: 'chinos' }, 'Chinos may give the outfit a neater, still relaxed level of dress.');
+    }
+    if (context.occasion === 'fancy') {
+      if (item.kind === 'sneakers' || item.kind === 'sandals') offer(item, { kind: 'loafers' }, 'Dressier shoes may better fit the selected fancy level.');
+      if (['tshirt', 'tank', 'hoodie', 'sweatshirt', 'polo'].includes(item.kind)) offer(item, { kind: 'shirt', pattern: 'solid' }, 'A dressier top may fit the selected fancy level.');
+      if (['jeans', 'shorts', 'joggers', 'leggings', 'cargoTrousers'].includes(item.kind)) offer(item, { kind: 'trousers', pattern: 'solid' }, 'Tailored trousers may fit the selected fancy level.');
     }
     if (context.occasion === 'casual') {
       if (item.kind === 'loafers') offer(item, { kind: 'sneakers' }, 'Trainers may better match the casual setting.');

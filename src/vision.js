@@ -11,19 +11,28 @@ const patterns = [
 
 const zones = [
   { name: 'Upper body', rect: [0.16, 0.12, 0.84, 0.53], candidates: [
-    ['tshirt', 'a photo of a T-shirt'], ['shirt', 'a photo of a shirt or blouse'],
+    ['tshirt', 'a photo of a T-shirt'], ['tank', 'a photo of a tank top'],
+    ['hoodie', 'a photo of a hoodie'], ['sweatshirt', 'a photo of a sweatshirt'],
+    ['polo', 'a photo of a polo shirt'], ['shirt', 'a photo of a shirt or blouse'],
     ['knit', 'a photo of a sweater'], ['blazer', 'a photo of a blazer'],
-    ['jacket', 'a photo of a casual jacket'], ['dress', 'a photo of a dress']
+    ['jacket', 'a photo of a casual jacket'], ['denimJacket', 'a photo of a denim jacket'],
+    ['cardigan', 'a photo of a cardigan'], ['coat', 'a photo of a coat'],
+    ['dress', 'a photo of a dress'], ['jumpsuit', 'a photo of a jumpsuit']
   ] },
   { name: 'Lower body', rect: [0.19, 0.44, 0.81, 0.82], candidates: [
     ['jeans', 'a photo of jeans'], ['shorts', 'a photo of shorts'],
-    ['trousers', 'a photo of tailored trousers'], ['skirt', 'a photo of a skirt'],
-    ['dress', 'a photo of a dress']
+    ['tailoredShorts', 'a photo of tailored shorts'], ['joggers', 'a photo of joggers'],
+    ['leggings', 'a photo of leggings'], ['cargoTrousers', 'a photo of cargo trousers'],
+    ['chinos', 'a photo of chinos'], ['trousers', 'a photo of tailored trousers'],
+    ['skirt', 'a photo of a skirt'], ['tailoredSkirt', 'a photo of a tailored skirt'],
+    ['dress', 'a photo of a dress'], ['casualDress', 'a photo of a casual dress'],
+    ['eveningDress', 'a photo of an evening dress'], ['jumpsuit', 'a photo of a jumpsuit']
   ] },
   { name: 'Footwear', rect: [0.20, 0.75, 0.80, 1], candidates: [
     ['sneakers', 'a photo of trainers or sneakers'], ['sandals', 'a photo of casual sandals or flip-flops'],
-    ['dressSandals', 'a photo of dress sandals'],
-    ['boots', 'a photo of boots'], ['loafers', 'a photo of smart shoes or loafers']
+    ['flats', 'a photo of flat shoes'], ['dressSandals', 'a photo of dress sandals'],
+    ['boots', 'a photo of boots'], ['loafers', 'a photo of smart shoes or loafers'],
+    ['heels', 'a photo of heels']
   ] }
 ];
 
@@ -98,5 +107,6 @@ export async function suggestGarments(image, onProgress) {
       alternatives: ranked.slice(0, 3).map(entry => entry.kind)
     });
   }
-  return suggestions.filter((entry, index) => entry.kind !== 'dress' || !suggestions.slice(0, index).some(earlier => earlier.kind === 'dress'));
+  const onePieceKinds = new Set(['dress', 'casualDress', 'eveningDress', 'tailoredDress', 'jumpsuit']);
+  return suggestions.filter((entry, index) => !onePieceKinds.has(entry.kind) || !suggestions.slice(0, index).some(earlier => onePieceKinds.has(earlier.kind)));
 }

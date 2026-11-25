@@ -12,10 +12,10 @@ const elements = {
   resultEmpty: $('result-empty'), resultEmptyTitle: $('result-title'), resultEmptyCopy: $('result-empty-copy'),
   resultContent: $('result-content'), scoreValue: $('score-value'),
   scoreContext: $('score-context'), dimensions: $('dimensions'), notes: $('score-notes'),
-  suggestion: $('suggestion-content'), preference: $('preference'), season: $('season'), selfViewResult: $('self-view-result'),
+  suggestion: $('suggestion-content'), preference: $('preference'), preferenceHelp: $('preference-help'), occasionHelp: $('occasion-help'), season: $('season'), selfViewResult: $('self-view-result'),
   suggestButton: $('suggest-button'), visionStatus: $('vision-status'), visionPanel: $('vision-panel'),
   visionList: $('vision-list'), applyVision: $('apply-vision'), skinButton: $('skin-button'), skinOutput: $('skin-output'),
-  skinGoalGroup: $('skin-goal-group'), skinGoal: $('skin-goal')
+  skinGoalGroup: $('skin-goal-group'), skinGoal: $('skin-goal'), skinGoalHelp: $('contrast-goal-help')
 };
 
 const state = {
@@ -32,12 +32,45 @@ const samples = {
   earth: { src: '/assets/sample-earth.webp', alt: 'AI-generated sample: adult person in a rust sweater, brown jacket, beige trousers and brown boots.', occasion: 'dinner', preference: 'earth', season: 'autumn', items: [['knit', 'orange'], ['jacket', 'brown'], ['trousers', 'beige'], ['boots', 'brown']] }
 };
 
+const preferenceDescriptions = {
+  none: 'No preference: you have no colour or pattern goal. This part uses a fixed 75/100 and does not judge your appearance.',
+  minimal: 'Understated: mostly plain pieces and quieter colours fit this choice. It affects only the 10% preference part of the score.',
+  expressive: 'Expressive: visible colour or pattern fits this choice. It affects only the 10% preference part of the score.',
+  earth: 'Earth tones: cream, beige, brown, orange and green fit this choice. It is a colour preference, not a skin-tone rule.',
+  cool: 'Cool tones: navy, blue, grey and purple are examples. It is a colour preference, not a skin-tone rule.'
+};
+
+const contrastDescriptions = {
+  none: 'We’ll describe the comparison. Your choice will not change the score.',
+  soft: 'Choose this if you like your top and skin to look similarly light or dark. This optional choice can affect 8% of the score.',
+  balanced: 'Choose this if you like a noticeable light/dark difference. This optional choice can affect 8% of the score.',
+  bold: 'Choose this if you like a strong light/dark difference. This optional choice can affect 8% of the score.'
+};
+
+const contrastDescription = contrast => ({ soft: 'a small', balanced: 'a noticeable', bold: 'a strong' })[contrast];
+
+function renderContextGuides() {
+  elements.occasionHelp.textContent = `${OCCASIONS[state.occasion].description} Choose the dress level you want; event examples are guides.`;
+  elements.preferenceHelp.textContent = preferenceDescriptions[state.preference];
+  elements.skinGoalHelp.textContent = contrastDescriptions[state.contrastGoal];
+}
+
 function item(kind = 'tshirt', color = null, pattern = 'solid') {
   return { id: String(state.nextId++), kind, color, pattern };
 }
 
 function options(dictionary, selected, label = value => value.label) {
   return Object.entries(dictionary).map(([key, value]) => `<option value="${key}"${key === selected ? ' selected' : ''}>${label(value)}</option>`).join('');
+}
+
+function garmentOptions(selected) {
+  const groups = [
+    ['Tops', 'upper'], ['Bottoms', 'lower'], ['Dresses and one-piece outfits', 'dress'],
+    ['Layers', 'outerwear'], ['Shoes', 'footwear']
+  ];
+  return groups.map(([label, slot]) => `<optgroup label="${label}">${Object.entries(GARMENTS)
+    .filter(([, garment]) => garment.slot === slot)
+    .map(([key, garment]) => `<option value="${key}"${key === selected ? ' selected' : ''}>${garment.label}</option>`).join('')}</optgroup>`).join('');
 }
 
 function markActiveSample(sampleId = null) {
@@ -136,6 +169,7 @@ function loadSample(sampleId) {
   document.querySelector('[name="self-view"][value="uncertain"]').checked = true;
   elements.preference.value = sample.preference;
   elements.season.value = sample.season;
+  renderContextGuides();
   markActiveSample(sampleId);
   photoFeedback('AI-generated sample image and its garment labels are provided for demonstration. You can edit every label or try the vision model separately.');
   renderItems();
@@ -203,9 +237,9 @@ function renderSkinComparison() {
   copy.textContent = compared.length
     ? `${describePhotoPatch(state.skinRgb)} ${compared.map(entry => {
       const piece = state.items.find(item => item.id === entry.id);
-      return `${entry.label} ${GARMENTS[piece.kind].label.toLowerCase()}: ${entry.contrast}`;
-    }).join('; ')} light/dark contrast. ${state.contrastGoal === 'none' ? 'No contrast goal is selected, so this comparison does not affect the score.' : 'Upper-body, outerwear and dress colours contribute to the optional 8% near-face score.'}`
-    : `${describePhotoPatch(state.skinRgb)} Add garment colours to compare light/dark contrast.`;
+      return `${entry.label} ${GARMENTS[piece.kind].label.toLowerCase()}: ${contrastDescription(entry.contrast)} light/dark difference`;
+    }).join('; ')}. ${state.contrastGoal === 'none' ? 'This does not change your score.' : 'Your preferred difference can affect 8% of the score.'}`
+    : `${describePhotoPatch(state.skinRgb)} Add the colour of a top, jacket or dress to see the comparison.`;
   elements.skinOutput.replaceChildren(swatch, copy);
   elements.skinOutput.hidden = false;
 }
@@ -224,7 +258,7 @@ function renderVisionSuggestions(suggestions) {
     const garment = document.createElement('select');
     garment.dataset.field = 'kind';
     garment.setAttribute('aria-label', `Suggested garment for ${suggestion.zone}`);
-    garment.innerHTML = options(GARMENTS, suggestion.kind);
+    garment.innerHTML = garmentOptions(suggestion.kind);
     const colour = document.createElement('select');
     colour.dataset.field = 'color';
     colour.setAttribute('aria-label', `Suggested colour for ${suggestion.zone}`);
@@ -267,7 +301,7 @@ function renderItems() {
     <div class="item-row" data-id="${piece.id}">
       <div class="item-top"><span class="item-title">PIECE ${String(index + 1).padStart(2, '0')}</span><button type="button" class="remove-item" data-action="remove" aria-label="Remove piece ${index + 1}">Remove</button></div>
       <div class="item-fields">
-        <label><span>Garment</span><select data-field="kind" name="piece-${index + 1}-garment" aria-label="Garment for piece ${index + 1}">${options(GARMENTS, piece.kind)}</select></label>
+        <label><span>Garment</span><select data-field="kind" name="piece-${index + 1}-garment" aria-label="Garment for piece ${index + 1}">${garmentOptions(piece.kind)}</select></label>
         <label><span>Colour</span><div class="color-field"><i class="swatch" style="background:${COLORS[piece.color]?.hex || '#fff'}" aria-hidden="true"></i><select data-field="color" name="piece-${index + 1}-colour" aria-label="Colour for piece ${index + 1}"><option value=""${piece.color ? '' : ' selected'}>Choose colour</option>${options(COLORS, piece.color)}</select></div></label>
         <label><span>Pattern</span><select data-field="pattern" name="piece-${index + 1}-pattern" aria-label="Pattern for piece ${index + 1}">${options(PATTERNS, piece.pattern, value => value)}</select></label>
       </div>
@@ -424,12 +458,13 @@ elements.skinButton.addEventListener('click', () => {
   state.skinPicking = !state.skinPicking;
   state.samplingId = null;
   setPhotoSampling(state.skinPicking, 'skin');
-  photoFeedback(state.skinPicking ? 'Tap a visible skin area, or use arrow keys on the photo and press Enter. You will return to the comparison below.' : 'Skin colour picking cancelled.');
+  photoFeedback(state.skinPicking ? 'Tap a visible skin area, or use arrow keys on the photo and press Enter. You will return to the comparison below.' : 'Skin-area selection cancelled.');
   renderItems();
   if (state.skinPicking) { scrollTo(elements.photoArea); elements.photo.focus({ preventScroll: true }); }
 });
 elements.skinGoal.addEventListener('change', event => {
   state.contrastGoal = event.target.value;
+  elements.skinGoalHelp.textContent = contrastDescriptions[state.contrastGoal];
   renderSkinComparison();
   if (state.scored) renderResult();
 });
@@ -511,7 +546,7 @@ function applyPhotoSample(clientX, clientY, fromKeyboard = false) {
       state.skinPicking = false;
       elements.skinGoalGroup.hidden = false;
       renderSkinComparison();
-      photoFeedback('Photo colour sampled. Review its description below. Choose a contrast goal if you want this comparison to affect the score.');
+      photoFeedback('Skin area sampled. Review the light/dark comparison below. It changes your score only if you choose a preferred difference.');
     } else {
       const piece = state.items.find(entry => entry.id === state.samplingId);
       if (piece) piece.color = sampled.colour;
@@ -562,11 +597,13 @@ elements.photo.addEventListener('keydown', event => {
 });
 document.querySelectorAll('input[name="occasion"]').forEach(input => input.addEventListener('change', event => {
   state.occasion = event.target.value;
+  renderContextGuides();
   state.previewOriginal = null;
   if (state.scored) renderResult();
 }));
 elements.preference.addEventListener('change', event => {
   state.preference = event.target.value;
+  renderContextGuides();
   state.previewOriginal = null;
   if (state.scored) renderResult();
 });
